@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Guest Profile: {{ guest.full_name }} | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('guests.index') }}" class="text-gold">Guests</a></li>
+            <li class="breadcrumb-item active text-light" aria-current="page">{{ guest.full_name }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="h3 fw-bold mb-1">{{ guest.full_name }}</h2>
+            <span class="badge bg-gold me-1">{{ guest.vip_tier }}</span>
+            <span class="badge bg-secondary">{{ guest.loyalty_points }} Loyalty Points</span>
+            {% if guest.is_blacklisted %}
+            <span class="badge bg-danger ms-2"><i class="fa-solid fa-ban me-1"></i>Blacklisted</span>
+            {% endif %}
+        </div>
+        <div>
+            <button class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#editGuestModal">
+                <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Section 1: Full-Width Guest Profile & Loyalty Summary -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <h5 class="fw-bold mb-0" style="color: #0f172a;">
+                    <i class="fa-regular fa-id-card text-gold me-2"></i>Guest Personal Dossier & VIP Loyalty
+                </h5>
+                <span class="badge bg-gold text-dark fw-bold px-3 py-1.5">{{ guest.vip_tier }} VIP Guest</span>
+            </div>
+
+            <!-- 4 Quick Stats Cards (High-Contrast White Luxury Theme) -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="p-3 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #2563eb !important;">
+                        <span class="small text-uppercase fw-bold" style="color: #475569; letter-spacing: 0.04em;">Total Stays</span>
+                        <h4 class="fw-bold my-1" style="color: #0f172a; font-size: 1.6rem;">{{ guest.bookings|length }}</h4>
+                        <small class="fw-medium" style="color: #64748b;">Completed reservations</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="p-3 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #10b981 !important;">
+                        <span class="small text-uppercase fw-bold" style="color: #475569; letter-spacing: 0.04em;">Lifetime Spending</span>
+                        <h4 class="fw-bold my-1" style="color: #059669; font-size: 1.6rem;">${{ "{:,.2f}".format(total_spent) }}</h4>
+                        <small class="fw-medium" style="color: #64748b;">Cumulative folio receipts</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="p-3 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #d97706 !important;">
+                        <span class="small text-uppercase fw-bold" style="color: #475569; letter-spacing: 0.04em;">Loyalty Tier</span>
+                        <h4 class="fw-bold my-1 text-gold" style="font-size: 1.6rem;">{{ guest.vip_tier }}</h4>
+                        <small class="fw-medium" style="color: #64748b;">{{ guest.loyalty_points }} Reward Points</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="p-3 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #0284c7 !important;">
+                        <span class="small text-uppercase fw-bold" style="color: #475569; letter-spacing: 0.04em;">Security & Account</span>
+                        <h4 class="fw-bold my-1 {% if guest.is_blacklisted %}text-danger{% else %}text-primary{% endif %}" style="font-size: 1.3rem;">
+                            {{ 'Blacklisted' if guest.is_blacklisted else 'Verified Active' }}
+                        </h4>
+                        <small class="fw-medium" style="color: #64748b;">ID: {{ guest.id_number }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details in Responsive Columns (High Contrast Dark Slate Text) -->
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label text-gold small fw-bold mb-1">Email Address</label>
+                    <div class="fw-semibold" style="color: #0f172a; word-break: break-all;">{{ guest.email }}</div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label text-gold small fw-bold mb-1">Phone Number</label>
+                    <div class="fw-semibold" style="color: #0f172a;">{{ guest.phone }}</div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label text-gold small fw-bold mb-1">Identification Document</label>
+                    <div class="fw-semibold" style="color: #0f172a;">{{ guest.id_type }} ({{ guest.id_number }})</div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label text-gold small fw-bold mb-1">Nationality</label>
+                    <div class="fw-semibold" style="color: #0f172a;">{{ guest.nationality }}</div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label text-gold small fw-bold mb-1">Residential / Business Address</label>
+                    <div class="fw-semibold" style="color: #0f172a;">{{ guest.address or 'No permanent address registered' }}</div>
+                </div>
+                <!-- ID / Passport Scan Document -->
+                <div class="col-12 mt-2">
+                    <label class="form-label text-gold small fw-bold mb-1">
+                        <i class="fa-solid fa-passport me-1"></i> Passport / ID Scan Document (Sawirka Aqoonsiga)
+                    </label>
+                    {% if guest.id_photo %}
+                    <div class="d-flex align-items-center gap-3 p-3 bg-white rounded border border-secondary border-opacity-25 shadow-sm">
+                        <a href="{{ url_for('static', filename=guest.id_photo) }}" target="_blank">
+                            <img src="{{ url_for('static', filename=guest.id_photo) }}" class="rounded border shadow-sm" style="max-height: 85px; max-width: 150px; object-fit: contain;" alt="ID Document">
+                        </a>
+                        <div>
+                            <div class="fw-bold text-dark small"><i class="fa-solid fa-file-circle-check text-success me-1"></i> Document Verified &amp; Attached</div>
+                            <div class="text-muted small" style="font-size: 0.75rem;">Document Number: {{ guest.id_number }} ({{ guest.id_type }})</div>
+                            <a href="{{ url_for('static', filename=guest.id_photo) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="fa-solid fa-up-right-from-square me-1"></i> View Full Document
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-3 bg-white rounded border border-dashed border-secondary text-muted small">
+                        <i class="fa-solid fa-circle-exclamation text-warning me-1"></i> No ID / Passport image attached. You can upload below via <strong>Edit Profile</strong> or during Reception Check-in.
+                    </div>
+                    {% endif %}
+                </div>
+                {% if guest.notes %}
+                <div class="col-12 mt-2">
+                    <div class="p-3 rounded border border-warning border-opacity-50" style="background: rgba(217, 119, 6, 0.08);">
+                        <strong class="text-gold"><i class="fa-solid fa-note-sticky me-1"></i>Guest Preferences & Concierge Notes:</strong>
+                        <div class="fw-medium mt-1" style="color: #0f172a;">{{ guest.notes }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Full-Width Stay History & Bookings Table -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <h5 class="fw-bold mb-0 text-white">
+                    <i class="fa-solid fa-clock-rotate-left text-gold me-2"></i>Stay History & Booking Log
+                </h5>
+                <span class="badge bg-secondary px-2.5 py-1">{{ guest.bookings|length }} Reservations</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>Booking Ref</th>
+                            <th>Stay Period</th>
+                            <th>Allocated Rooms</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in guest.bookings %}
+                        <tr>
+                            <td class="fw-bold text-gold"><i class="fa-solid fa-bookmark me-1"></i> {{ b.booking_reference }}</td>
+                            <td>
+                                <span class="fw-semibold" style="color: #0f172a;">{{ b.check_in_date.strftime('%b %d, %Y') }} &rarr; {{ b.check_out_date.strftime('%b %d, %Y') }}</span>
+                            </td>
+                            <td>
+                                {% for br in b.booking_rooms %}
+                                <span class="badge px-2.5 py-1.5 fw-bold me-1 shadow-sm" style="background: #0f172a; color: #f59e0b; border: 1px solid #334155; font-size: 0.82rem;">
+                                    <i class="fa-solid fa-door-open me-1 text-gold"></i> Room {{ br.room.room_number }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary text-white">Unassigned</span>
+                                {% endfor %}
+                            </td>
+                            <td class="fw-bold text-success">${{ "{:,.2f}".format(b.total_amount) }}</td>
+                            <td><span class="{{ b.status_badge }}">{{ b.status }}</span></td>
+                            <td class="text-end">
+                                <a href="{{ url_for('bookings.show', booking_id=b.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-3">No stay history recorded for this guest.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editGuestModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold">Edit Guest Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('guests.edit', guest_id=guest.id) }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small text-muted">First Name</label>
+                            <input type="text" name="first_name" value="{{ guest.first_name }}" class="form-control bg-dark text-light border-secondary" required placeholder="Enter first name">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted">Last Name</label>
+                            <input type="text" name="last_name" value="{{ guest.last_name }}" class="form-control bg-dark text-light border-secondary" required placeholder="Enter last name">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Email</label>
+                        <input type="email" name="email" value="{{ guest.email }}" class="form-control bg-dark text-light border-secondary" required placeholder="Enter email address">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Phone Number</label>
+                        <input type="text" name="phone" value="{{ guest.phone }}" class="form-control bg-dark text-light border-secondary" required placeholder="Enter phone number e.g. +252 61 555 0100">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small text-muted">ID Type</label>
+                            <select name="id_type" class="form-select bg-dark text-light border-secondary">
+                                <option value="Passport" {% if guest.id_type == 'Passport' %}selected{% endif %}>Passport</option>
+                                <option value="National ID" {% if guest.id_type == 'National ID' %}selected{% endif %}>National ID</option>
+                                <option value="Driver License" {% if guest.id_type == 'Driver License' %}selected{% endif %}>Driver License</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted">ID Number</label>
+                            <input type="text" name="id_number" value="{{ guest.id_number }}" class="form-control bg-dark text-light border-secondary" required placeholder="Enter ID or passport number">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small text-muted">Nationality</label>
+                            <input type="text" name="nationality" value="{{ guest.nationality }}" class="form-control bg-dark text-light border-secondary" placeholder="Enter nationality">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted">VIP Tier</label>
+                            <select name="vip_tier" class="form-select bg-dark text-light border-secondary">
+                                <option value="Standard" {% if guest.vip_tier == 'Standard' %}selected{% endif %}>Standard</option>
+                                <option value="Silver" {% if guest.vip_tier == 'Silver' %}selected{% endif %}>Silver</option>
+                                <option value="Gold" {% if guest.vip_tier == 'Gold' %}selected{% endif %}>Gold</option>
+                                <option value="VIP Platinum" {% if guest.vip_tier == 'VIP Platinum' %}selected{% endif %}>VIP Platinum</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 p-3 rounded bg-dark border border-secondary border-opacity-50">
+                        <label class="form-label small fw-bold text-light mb-1 d-flex justify-content-between">
+                            <span><i class="fa-solid fa-passport text-gold me-1"></i> Passport / ID Scan (Sawirka Aqoonsiga)</span>
+                            <span class="badge bg-gold text-dark" style="font-size: 0.65rem;">Camera or File</span>
+                        </label>
+                        
+                        <!-- Dual Buttons -->
+                        <div class="d-flex gap-2 my-2">
+                            <button type="button" class="btn btn-outline-warning btn-sm flex-fill fw-semibold py-1" id="btnModalCam">
+                                <i class="fa-solid fa-camera me-1"></i> Qaad Sawir (Camera)
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill fw-semibold text-light py-1" id="btnModalUpload">
+                                <i class="fa-solid fa-folder-open me-1"></i> Upload File
+                            </button>
+                        </div>
+
+                        <!-- Modal Camera Viewport -->
+                        <div id="modalCamViewport" class="d-none mb-2 text-center p-2 rounded bg-black border border-warning position-relative">
+                            <video id="modalWebcam" autoplay playsinline style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 4px;"></video>
+                            <div class="d-flex justify-content-center gap-2 mt-2">
+                                <button type="button" class="btn btn-warning text-dark fw-bold btn-sm px-3" id="btnModalCapture">
+                                    <i class="fa-solid fa-camera me-1"></i> Qabo Sawirka
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnModalCloseCam">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="file" name="id_photo" id="modalIdFileInput" class="form-control form-control-sm bg-dark text-light border-secondary mb-2" accept="image/*,application/pdf" capture="environment">
+                        <canvas id="modalCanvas" style="display: none;"></canvas>
+                        <input type="hidden" name="id_photo_base64" id="modalIdPhotoBase64">
+
+                        <!-- Preview -->
+                        <div id="modalPreviewBox" class="d-none p-2 rounded bg-black border border-success text-center position-relative">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-success small fw-bold" style="font-size: 0.7rem;"><i class="fa-solid fa-check me-1"></i> Document Ready</span>
+                                <button type="button" class="btn btn-outline-danger btn-xs" id="btnModalResetPhoto" style="font-size: 0.62rem; padding: 1px 6px;">Reset</button>
+                            </div>
+                            <img id="modalPreviewImg" src="" class="img-fluid rounded border border-secondary" style="max-height: 130px; object-fit: contain;">
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="is_blacklisted" class="form-check-input" id="chkBlacklist" {% if guest.is_blacklisted %}checked{% endif %}>
+                        <label class="form-check-label text-danger small" for="chkBlacklist">Blacklist this guest (flag alerts upon booking attempt)</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Preferences / Notes</label>
+                        <textarea name="notes" class="form-control bg-dark text-light border-secondary" rows="3" placeholder="Add any notes or remarks here">{{ guest.notes or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnModalCam = document.getElementById('btnModalCam');
+    const btnModalUpload = document.getElementById('btnModalUpload');
+    const modalCamViewport = document.getElementById('modalCamViewport');
+    const modalWebcam = document.getElementById('modalWebcam');
+    const btnModalCapture = document.getElementById('btnModalCapture');
+    const btnModalCloseCam = document.getElementById('btnModalCloseCam');
+    const modalCanvas = document.getElementById('modalCanvas');
+    const modalIdPhotoBase64 = document.getElementById('modalIdPhotoBase64');
+    const modalIdFileInput = document.getElementById('modalIdFileInput');
+    const modalPreviewBox = document.getElementById('modalPreviewBox');
+    const modalPreviewImg = document.getElementById('modalPreviewImg');
+    const btnModalResetPhoto = document.getElementById('btnModalResetPhoto');
+
+    let modalStream = null;
+
+    async function startModalCam() {
+        if (modalStream) stopModalCam();
+        try {
+            modalStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 } },
+                audio: false
+            });
+            modalWebcam.srcObject = modalStream;
+            modalCamViewport.classList.remove('d-none');
+            btnModalCam.classList.replace('btn-outline-warning', 'btn-warning');
+            btnModalCam.classList.add('text-dark');
+        } catch (err) {
+            console.error(err);
+            alert("Kaamirada lama furi karo. Fadlan isticmaal 'Upload File'.");
+        }
+    }
+
+    function stopModalCam() {
+        if (modalStream) {
+            modalStream.getTracks().forEach(t => t.stop());
+            modalStream = null;
+        }
+        modalCamViewport.classList.add('d-none');
+        btnModalCam.classList.replace('btn-warning', 'btn-outline-warning');
+        btnModalCam.classList.remove('text-dark');
+    }
+
+    btnModalCam.addEventListener('click', function() {
+        if (modalCamViewport.classList.contains('d-none')) {
+            startModalCam();
+        } else {
+            stopModalCam();
+        }
+    });
+
+    btnModalUpload.addEventListener('click', function() {
+        stopModalCam();
+        modalIdFileInput.click();
+    });
+
+    btnModalCloseCam.addEventListener('click', stopModalCam);
+
+    btnModalCapture.addEventListener('click', function() {
+        if (!modalWebcam.videoWidth) return;
+        modalCanvas.width = modalWebcam.videoWidth;
+        modalCanvas.height = modalWebcam.videoHeight;
+        const ctx = modalCanvas.getContext('2d');
+        ctx.drawImage(modalWebcam, 0, 0, modalCanvas.width, modalCanvas.height);
+        const dataUrl = modalCanvas.toDataURL('image/jpeg', 0.90);
+        modalIdPhotoBase64.value = dataUrl;
+        modalPreviewImg.src = dataUrl;
+        modalPreviewBox.classList.remove('d-none');
+        stopModalCam();
+    });
+
+    modalIdFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                modalPreviewImg.src = evt.target.result;
+                modalPreviewBox.classList.remove('d-none');
+                modalIdPhotoBase64.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    btnModalResetPhoto.addEventListener('click', function() {
+        modalIdPhotoBase64.value = '';
+        modalIdFileInput.value = '';
+        modalPreviewImg.src = '';
+        modalPreviewBox.classList.add('d-none');
+    });
+
+    // Stop camera if modal is closed
+    const editModal = document.getElementById('editGuestModal');
+    if (editModal) {
+        editModal.addEventListener('hidden.bs.modal', stopModalCam);
+    }
+});
+</script>
+{% endblock %}

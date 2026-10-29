@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Users & Role-Based Access Control | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-gold">Home</a></li>
+                <li class="breadcrumb-item active text-muted" aria-current="page">Users &amp; Roles</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1" style="color: #0f172a;">
+            <i class="fa-solid fa-users-gear text-gold me-2"></i>System Users &amp; Role-Based Access Control
+        </h2>
+        <p class="text-muted small mb-0">Manage system operators, assign departmental roles, reset passwords, and control access permissions across all hotel terminals.</p>
+    </div>
+    <div>
+        <button type="button" class="btn btn-gold fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="fa-solid fa-user-plus me-1.5"></i> Add New User Account
+        </button>
+    </div>
+</div>
+
+<!-- 4 Executive KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-sm-6">
+        <div class="p-3.5 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #0f172a !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="small text-uppercase fw-bold text-muted" style="letter-spacing: 0.04em;">Total System Users</span>
+                    <h3 class="fw-bold my-1" style="color: #0f172a;">{{ total_users }}</h3>
+                    <small class="text-muted">Registered operator credentials</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(15, 23, 42, 0.08); color: #0f172a;">
+                    <i class="fa-solid fa-users fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="p-3.5 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #10b981 !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="small text-uppercase fw-bold text-muted" style="letter-spacing: 0.04em;">Active Accounts</span>
+                    <h3 class="fw-bold my-1 text-success">{{ active_users }}</h3>
+                    <small class="text-muted">Authorized to log in</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="fa-solid fa-user-check fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="p-3.5 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #d97706 !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="small text-uppercase fw-bold text-muted" style="letter-spacing: 0.04em;">Admins &amp; Managers</span>
+                    <h3 class="fw-bold my-1 text-gold">{{ admin_count }}</h3>
+                    <small class="text-muted">Executive management level</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(217, 119, 6, 0.1); color: #d97706;">
+                    <i class="fa-solid fa-shield-halved fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="p-3.5 rounded bg-white shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #0284c7 !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="small text-uppercase fw-bold text-muted" style="letter-spacing: 0.04em;">Departmental Staff</span>
+                    <h3 class="fw-bold my-1 text-primary">{{ staff_count }}</h3>
+                    <small class="text-muted">Front desk, POS, Housekeeping</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+                    <i class="fa-solid fa-id-badge fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Users Table Card -->
+<div class="card-luxury p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-0" style="color: #0f172a;">
+                <i class="fa-solid fa-user-lock text-gold me-2"></i>System Users Directory &amp; Role Assignments
+            </h5>
+            <small class="text-muted">Admin can create new accounts, assign departmental roles, update profiles, and reset passwords.</small>
+        </div>
+        <span class="badge bg-gold text-dark fw-bold px-3 py-1.5">{{ users|length }} Total Users</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury datatable">
+            <thead>
+                <tr>
+                    <th>User &amp; Identity</th>
+                    <th>Username</th>
+                    <th>Email &amp; Contact</th>
+                    <th>Assigned Role</th>
+                    <th>Status</th>
+                    <th>Last Active</th>
+                    <th class="text-end" style="min-width: 140px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; background: #0f172a; color: #f59e0b; font-size: 0.95rem; border: 1px solid #334155;">
+                                {{ u.full_name[:1] | upper if u.full_name else 'U' }}
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">{{ u.full_name }}</div>
+                                <small class="text-muted font-monospace">UID: #{{ u.id }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge px-2.5 py-1 font-monospace fw-bold" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-size: 0.8rem;">
+                            <i class="fa-solid fa-at text-muted me-1"></i>{{ u.username }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-dark">{{ u.email }}</div>
+                        <small class="text-muted">{{ u.phone or 'No phone registered' }}</small>
+                    </td>
+                    <td>
+                        {% if u.role %}
+                            {% if u.role.name == 'Super Admin' %}
+                                <span class="badge bg-gold text-dark fw-bold px-2.5 py-1"><i class="fa-solid fa-crown me-1"></i>Super Admin</span>
+                            {% elif u.role.name == 'Manager' %}
+                                <span class="badge bg-primary px-2.5 py-1"><i class="fa-solid fa-briefcase me-1"></i>Manager</span>
+                            {% elif u.role.name == 'Receptionist' %}
+                                <span class="badge bg-success px-2.5 py-1"><i class="fa-solid fa-bell-concierge me-1"></i>Receptionist</span>
+                            {% elif u.role.name == 'Housekeeping' %}
+                                <span class="badge bg-warning text-dark px-2.5 py-1"><i class="fa-solid fa-broom me-1"></i>Housekeeping</span>
+                            {% elif u.role.name == 'Accountant' %}
+                                <span class="badge bg-info text-dark px-2.5 py-1"><i class="fa-solid fa-calculator me-1"></i>Accountant</span>
+                            {% elif u.role.name == 'Restaurant/POS Staff' %}
+                                <span class="badge bg-danger px-2.5 py-1"><i class="fa-solid fa-utensils me-1"></i>Restaurant/POS</span>
+                            {% else %}
+                                <span class="badge bg-secondary px-2.5 py-1">{{ u.role.name }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary">No Role</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                            <i class="fa-solid fa-circle-check me-1"></i> Active
+                        </span>
+                        {% else %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Inactive
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted">
+                            {{ u.last_login.strftime('%b %d, %Y %H:%M') if u.last_login else 'Never logged in' }}
+                        </small>
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <!-- Edit Button -->
+                            <button type="button" class="btn btn-outline-secondary" title="Edit User Details" data-bs-toggle="modal" data-bs-target="#editUserModal{{ u.id }}">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <!-- Reset Password Button -->
+                            <button type="button" class="btn btn-outline-warning text-dark" title="Reset Password" data-bs-toggle="modal" data-bs-target="#resetPassModal{{ u.id }}">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
+                            <!-- Toggle Active Status Form -->
+                            {% if u.id != 1 and u.id != current_user.id %}
+                            <form action="{{ url_for('users.toggle_status', user_id=u.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-outline-{{ 'warning' if u.is_active else 'success' }}" title="{{ 'Deactivate' if u.is_active else 'Activate' }}">
+                                    <i class="fa-solid fa-{{ 'user-slash' if u.is_active else 'user-check' }}"></i>
+                                </button>
+                            </form>
+                            <!-- Delete Form -->
+                            <form action="{{ url_for('users.delete_user', user_id=u.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete user account: {{ u.username }}?');">
+                                <button type="submit" class="btn btn-outline-danger" title="Delete User">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+
+                        <!-- Edit User Modal -->
+                        <div class="modal fade" id="editUserModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content bg-white text-dark shadow-lg" style="border: 1px solid #cbd5e1;">
+                                    <div class="modal-header border-bottom" style="background: #f8fafc;">
+                                        <h5 class="modal-title fw-bold" style="color: #0f172a;">
+                                            <i class="fa-solid fa-user-pen text-gold me-2"></i>Edit User: {{ u.username }}
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{{ url_for('users.edit_user', user_id=u.id) }}" method="POST">
+                                        <div class="modal-body text-start">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Full Name</label>
+                                                <input type="text" name="full_name" class="form-control bg-white text-dark" value="{{ u.full_name }}" required placeholder="e.g. Maryam Xasan Warsame">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Email Address</label>
+                                                <input type="email" name="email" class="form-control bg-white text-dark" value="{{ u.email }}" required placeholder="user@grandhorizon.com">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">Phone Number</label>
+                                                <input type="text" name="phone" class="form-control bg-white text-dark" value="{{ u.phone or '' }}" placeholder="+252 61 555-0100">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">System Role</label>
+                                                <select name="role_id" class="form-select bg-white text-dark" required>
+                                                    {% for r in roles %}
+                                                    <option value="{{ r.id }}" {% if u.role_id == r.id %}selected{% endif %}>
+                                                        {{ r.name }} ({{ r.description or 'Standard departmental access' }})
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="form-check form-switch mt-3">
+                                                <input class="form-check-input" type="checkbox" name="is_active" value="1" id="actCheck{{ u.id }}" {% if u.is_active %}checked{% endif %} {% if u.id == 1 %}disabled{% endif %}>
+                                                <label class="form-check-label fw-semibold" for="actCheck{{ u.id }}">Account Active (Can log in to terminal)</label>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-top" style="background: #f8fafc;">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-gold fw-bold">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reset Password Modal -->
+                        <div class="modal fade" id="resetPassModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content bg-white text-dark shadow-lg" style="border: 1px solid #cbd5e1;">
+                                    <div class="modal-header border-bottom" style="background: #f8fafc;">
+                                        <h5 class="modal-title fw-bold" style="color: #0f172a;">
+                                            <i class="fa-solid fa-key text-warning me-2"></i>Reset Password: {{ u.username }}
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{{ url_for('users.reset_password', user_id=u.id) }}" method="POST">
+                                        <div class="modal-body text-start">
+                                            <p class="small text-muted mb-3">
+                                                Set a new secure password for <strong>{{ u.full_name }}</strong> (<code>{{ u.username }}</code>).
+                                            </p>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small text-muted">New Password</label>
+                                                <input type="text" name="new_password" class="form-control bg-white text-dark font-monospace" required placeholder="Enter new password (min 4 characters)">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-top" style="background: #f8fafc;">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-warning fw-bold text-dark">Update Password</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Departmental Role Privileges Matrix Guide -->
+<div class="card-luxury p-4">
+    <h5 class="fw-bold mb-3" style="color: #0f172a;">
+        <i class="fa-solid fa-shield-halved text-gold me-2"></i>Departmental Role Permissions &amp; Access Matrix
+    </h5>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="p-3 rounded border bg-light h-100">
+                <span class="badge bg-gold text-dark fw-bold mb-2"><i class="fa-solid fa-crown me-1"></i> Super Admin &amp; General Manager</span>
+                <p class="small text-muted mb-2">Unrestricted access across all operational modules, revenue audits, financial folios, system configuration, user CRUD, and settings.</p>
+                <div class="small fw-semibold text-success"><i class="fa-solid fa-check me-1"></i> Full System Control</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 rounded border bg-light h-100">
+                <span class="badge bg-success text-white fw-bold mb-2"><i class="fa-solid fa-bell-concierge me-1"></i> Receptionist (Front Desk)</span>
+                <p class="small text-muted mb-2">Check-in and Check-out flows, Guest reservations, Room assignment boards, VIP Guest CRM, Master Folios, and Reception registration cards.</p>
+                <div class="small fw-semibold text-primary"><i class="fa-solid fa-check me-1"></i> Front Desk &amp; Folios</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 rounded border bg-light h-100">
+                <span class="badge bg-danger text-white fw-bold mb-2"><i class="fa-solid fa-utensils me-1"></i> Restaurant &amp; Kitchen (POS / Chef)</span>
+                <p class="small text-muted mb-2">Point of Sale dining orders, live Kitchen KDS terminal, culinary menu updates, and direct delivery order dispatches.</p>
+                <div class="small fw-semibold text-danger"><i class="fa-solid fa-check me-1"></i> POS &amp; KDS Brigade</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 rounded border bg-light h-100">
+                <span class="badge bg-warning text-dark fw-bold mb-2"><i class="fa-solid fa-broom me-1"></i> Housekeeping Staff</span>
+                <p class="small text-muted mb-2">Housekeeping room cleaning roster, mark Clean/Dirty/Inspected, report maintenance repairs, and linen supplies management.</p>
+                <div class="small fw-semibold text-warning"><i class="fa-solid fa-check me-1"></i> Room Hygiene &amp; Tickets</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 rounded border bg-light h-100">
+                <span class="badge bg-info text-dark fw-bold mb-2"><i class="fa-solid fa-calculator me-1"></i> Accountant / Financial Cashier</span>
+                <p class="small text-muted mb-2">Billing and master folios, payment settlement, fee surcharges, operating expenses tracking, and full financial revenue reports.</p>
+                <div class="small fw-semibold text-info"><i class="fa-solid fa-check me-1"></i> Billing &amp; Financials</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 rounded border bg-light h-100">
+                <span class="badge bg-secondary text-white fw-bold mb-2"><i class="fa-solid fa-user me-1"></i> Guest / Resident Portal</span>
+                <p class="small text-muted mb-2">Public website guest self-service: browse luxury suites, book oceanfront stays, and order food / express delivery directly.</p>
+                <div class="small fw-semibold text-muted"><i class="fa-solid fa-check me-1"></i> Public Website Integration</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-white text-dark shadow-lg" style="border: 1px solid #cbd5e1;">
+            <div class="modal-header border-bottom" style="background: #f8fafc;">
+                <h5 class="modal-title fw-bold" style="color: #0f172a;">
+                    <i class="fa-solid fa-user-plus text-gold me-2"></i>Create New System User Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('users.create_user') }}" method="POST">
+                <div class="modal-body text-start">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" name="full_name" class="form-control bg-white text-dark" required placeholder="e.g. Cabdiqaadir Xasan Nuur">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Username <span class="text-danger">*</span></label>
+                            <input type="text" name="username" class="form-control bg-white text-dark font-monospace" required placeholder="e.g. cabdi123">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Initial Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password" class="form-control bg-white text-dark" required placeholder="Min 4 characters">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control bg-white text-dark" required placeholder="cabdi@grandhorizon.com">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Phone Number</label>
+                            <input type="text" name="phone" class="form-control bg-white text-dark" placeholder="+252 61 555-0100">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Assigned System Role <span class="text-danger">*</span></label>
+                        <select name="role_id" class="form-select bg-white text-dark" required>
+                            <option value="">-- Select Departmental Role --</option>
+                            {% for r in roles %}
+                            <option value="{{ r.id }}">{{ r.name }} ({{ r.description or 'Standard access' }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="newUserActive" checked>
+                        <label class="form-check-label fw-semibold" for="newUserActive">Activate account immediately</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-top" style="background: #f8fafc;">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold fw-bold">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

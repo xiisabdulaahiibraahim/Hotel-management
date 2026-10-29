@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}In-Room Minibar Billing & Inspection | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('housekeeping.index') }}" class="text-gold">Housekeeping</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Minibar Operations</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">In-Room Minibar <span class="text-gold">Billing &amp; Inspection</span></h2>
+        <p class="text-muted small mb-0">Diiwaangelinta cabitaanka iyo fududeeyaha minibar-ka qolalka martida, iyo toos ugu darista biilka qolka (Guest Folio).</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-gold btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#newMinibarModal">
+            <i class="fa-solid fa-cart-plus me-1"></i> Record Minibar Consumption
+        </button>
+        <a href="{{ url_for('housekeeping.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-broom me-1"></i> Housekeeping Tasks
+        </a>
+    </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-warning">
+            <div class="text-muted small text-uppercase fw-bold">Total Minibar Revenue</div>
+            <div class="fs-4 fw-bold text-light mt-1">${{ "{:,.2f}".format(total_sales) }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Cumulative in-room consumption</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-success">
+            <div class="text-muted small text-uppercase fw-bold">Items Billed</div>
+            <div class="fs-4 fw-bold text-success mt-1">{{ total_items }} Units</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Drinks &amp; snacks consumed</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-primary">
+            <div class="text-muted small text-uppercase fw-bold">Occupied Rooms</div>
+            <div class="fs-4 fw-bold text-primary mt-1">{{ occupied_bookings|length }} Rooms</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Eligible for in-suite billing</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-info">
+            <div class="text-muted small text-uppercase fw-bold">Catalog Offerings</div>
+            <div class="fs-4 fw-bold text-info mt-1">{{ minibar_services|length }} Items</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Luxury snacks &amp; beverages</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs: Consumption History & Price Catalog -->
+<ul class="nav nav-pills mb-3 border-bottom border-secondary border-opacity-25 pb-2" id="minibarTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active btn-sm fw-bold me-2" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-pane" type="button" role="tab">
+            <i class="fa-solid fa-receipt me-1"></i> In-Room Billing Log ({{ minibar_orders|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link btn-sm fw-bold" id="catalog-tab" data-bs-toggle="tab" data-bs-target="#catalog-pane" type="button" role="tab">
+            <i class="fa-solid fa-list-check me-1"></i> Minibar Catalog &amp; Tariffs ({{ minibar_services|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="minibarTabContent">
+    <!-- Tab 1: Billing Log -->
+    <div class="tab-pane fade show active" id="orders-pane" role="tabpanel">
+        <div class="card-luxury p-4">
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>Ref #</th>
+                            <th>Date &amp; Time</th>
+                            <th>Room / Suite</th>
+                            <th>Guest Name</th>
+                            <th>Consumed Item</th>
+                            <th>Qty &amp; Unit</th>
+                            <th>Total Charge</th>
+                            <th>Folio Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in minibar_orders %}
+                        <tr>
+                            <td class="fw-bold text-gold">MB-{{ o.id }}</td>
+                            <td>
+                                <span class="text-light fw-semibold">{{ o.created_at.strftime('%H:%M %b %d') }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-warning text-warning fw-bold px-2 py-1">
+                                    <i class="fa-solid fa-door-open me-1"></i>Room {{ o.room.room_number if o.room else 'N/A' }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong class="text-light">{{ o.booking.guest.full_name if o.booking and o.booking.guest else 'Guest' }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-light fw-medium">{{ o.service.name if o.service else 'Minibar Item' }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ o.quantity }} {{ o.service.unit_type if o.service else 'pcs' }}</span>
+                            </td>
+                            <td>
+                                <strong class="text-success">${{ "{:,.2f}".format(o.total_amount) }}</strong>
+                            </td>
+                            <td>
+                                {% if o.is_charged_to_folio %}
+                                <span class="badge bg-success"><i class="fa-solid fa-check-double me-1"></i>Billed to Folio</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Unbilled</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMbModal{{ o.id }}" title="Tirtir">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-wine-bottle fs-2 mb-2 text-secondary"></i>
+                                <div>Wax cabitaan ama cunto minibar ah weli lama diiwaangelin.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Catalog & Tariffs -->
+    <div class="tab-pane fade" id="catalog-pane" role="tabpanel">
+        <div class="card-luxury p-4">
+            <div class="table-responsive">
+                <table class="table-luxury">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Description</th>
+                            <th>Unit</th>
+                            <th>Standard Minibar Tariff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for svc in minibar_services %}
+                        <tr>
+                            <td>
+                                <strong class="text-light">{{ svc.name }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ svc.description or 'In-room luxury minibar beverage/snack' }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary">{{ svc.unit_type }}</span>
+                            </td>
+                            <td>
+                                <strong class="text-gold fs-6">${{ "{:,.2f}".format(svc.price) }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-success">Active Stocked</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODALS OUTSIDE TABLE (PREVENTS FREEZE BUG) -->
+<!-- ========================================== -->
+
+<!-- New Minibar Record Modal -->
+<div class="modal fade" id="newMinibarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-gold">
+                    <i class="fa-solid fa-wine-bottle me-1"></i> Record Minibar Consumption (Biilka Minibar-ka)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('housekeeping.record_minibar_consumption') }}" method="POST">
+                <div class="modal-body">
+                    <!-- Select Room -->
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Occupied Room &amp; Guest (Qolka &amp; Martida) <span class="text-danger">*</span></label>
+                        <select name="booking_id" class="form-select bg-dark text-light border-secondary" required>
+                            <option value="">-- Dooro Qolka Martidu Ku Jirto --</option>
+                            {% for b in occupied_bookings %}
+                            {% set rm = b.booking_rooms[0].room if b.booking_rooms else None %}
+                            <option value="{{ b.id }}">
+                                Room {{ rm.room_number if rm else 'N/A' }} - {{ b.guest.full_name if b.guest else 'Guest' }} (Ref: {{ b.booking_reference }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if not occupied_bookings %}
+                        <small class="text-warning d-block mt-1"><i class="fa-solid fa-triangle-exclamation"></i> Ma jiraan qolal hadda marti ku hoyato (No checked-in rooms).</small>
+                        {% endif %}
+                    </div>
+
+                    <!-- Select Minibar Item -->
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Consumed Item (Alaabta La Isticmaalay) <span class="text-danger">*</span></label>
+                        <select name="service_id" id="mbItemSelect" class="form-select bg-dark text-light border-secondary" onchange="calcMbTotal()" required>
+                            <option value="" data-price="0">-- Dooro Cabitaanka / Cuntada --</option>
+                            {% for s in minibar_services %}
+                            <option value="{{ s.id }}" data-price="{{ s.price }}">
+                                {{ s.name }} — ${{ "{:,.2f}".format(s.price) }} / {{ s.unit_type }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small text-muted">Quantity Consumed (Cadadka)</label>
+                            <input type="number" id="mbQtyInput" name="quantity" min="1" max="50" value="1" class="form-control bg-dark text-light border-secondary" oninput="calcMbTotal()" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted">Total Folio Charge</label>
+                            <div class="p-2 bg-dark rounded border border-warning text-center">
+                                <span class="fw-bold text-gold fs-5" id="mbTotalDisplay">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Folio Checkbox -->
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="post_to_folio" class="form-check-input" id="postFolioCheck" checked>
+                        <label class="form-check-label text-light small fw-bold" for="postFolioCheck">
+                            Toos ugu dar Biilka Martida (Post to Room Folio Invoice)
+                        </label>
+                        <div class="text-muted" style="font-size: 0.72rem;">Lacagtu waxay toos ugu darsamaysaa biilka qolka marka uu baxayo (Check-out) ayaa laga qaadayaa.</div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-2">
+                        <label class="form-label small text-muted">Inspection Notes</label>
+                        <input type="text" name="notes" class="form-control bg-dark text-light border-secondary" placeholder="e.g. Daily morning minibar audit & restock">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm fw-bold">
+                        <i class="fa-solid fa-check-circle me-1"></i> Confirm &amp; Charge Minibar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Minibar Record Modals -->
+{% for o in minibar_orders %}
+<div class="modal fade" id="deleteMbModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h6 class="modal-title fw-bold text-danger"><i class="fa-solid fa-trash me-1"></i> Delete Minibar Record</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('housekeeping.delete_minibar_order', order_id=o.id) }}" method="POST">
+                <div class="modal-body small">
+                    Ma hubtaa inaad tirtirto diiwaanka minibar <strong>MB-{{ o.id }}</strong> (${{ "{:,.2f}".format(o.total_amount) }})?
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm fw-bold">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function calcMbTotal() {
+    const sel = document.getElementById('mbItemSelect');
+    const opt = sel.options[sel.selectedIndex];
+    const price = parseFloat(opt ? opt.getAttribute('data-price') || 0 : 0);
+    const qty = parseInt(document.getElementById('mbQtyInput').value || 1, 10);
+    const total = (price * qty).toFixed(2);
+    document.getElementById('mbTotalDisplay').textContent = '$' + total;
+}
+</script>
+
+{% endblock %}
+

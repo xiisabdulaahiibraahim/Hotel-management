@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Kitchen Display System (KDS) | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Kitchen Display System (KDS)</h2>
+        <p class="text-muted small mb-0">Live order queue for head chef and kitchen culinary brigade.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('restaurant.pos') }}" class="btn btn-outline-gold btn-sm">
+            <i class="fa-solid fa-cash-register me-1"></i> New Order (POS)
+        </a>
+    </div>
+</div>
+
+<!-- Active Tickets Grid -->
+<div class="row g-4">
+    {% for order in active_orders %}
+    <div class="col-xl-4 col-md-6">
+        <div class="card-luxury p-4 h-100 border-start border-4 {% if order.status == 'In Kitchen' %}border-warning{% elif order.status == 'Ready' %}border-info{% else %}border-secondary{% endif %}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fs-5 fw-bold text-gold">{{ order.order_number }}</span>
+                <span class="{{ order.status_badge }}">{{ order.status }}</span>
+            </div>
+            <div class="small text-muted mb-3 d-flex justify-content-between">
+                <span>
+                    <i class="fa-solid fa-bell-concierge me-1 text-gold"></i>
+                    {% if order.room %}
+                    Room {{ order.room.room_number }} (Room Service)
+                    {% else %}
+                    Table: {{ order.table_number or 'Dine-In' }}
+                    {% endif %}
+                </span>
+                <span>{{ order.created_at.strftime('%H:%M') }}</span>
+            </div>
+
+            <!-- Items list -->
+            <ul class="list-group list-group-flush bg-transparent mb-3">
+                {% for item in order.items %}
+                <li class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-2 d-flex justify-content-between">
+                    <div>
+                        <span class="badge bg-gold me-2">{{ item.quantity }}x</span>
+                        <strong>{{ item.menu_item.name }}</strong>
+                        {% if item.special_instructions %}
+                        <div class="text-warning small fst-italic ms-4">{{ item.special_instructions }}</div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Kitchen Action Workflow Buttons -->
+            <div class="d-flex flex-column gap-2 mt-auto pt-2">
+                {% if order.status == 'Pending' %}
+                <form action="{{ url_for('restaurant.send_to_kitchen', order_id=order.id) }}" method="POST">
+                    <button type="submit" class="btn btn-warning text-dark w-100 fw-bold py-2 shadow-sm">
+                        <i class="fa-solid fa-fire me-1.5"></i> Bilow Karinta (Accept &amp; Start Cooking)
+                    </button>
+                </form>
+                {% elif order.status == 'In Kitchen' %}
+                <form action="{{ url_for('restaurant.send_to_reception', order_id=order.id) }}" method="POST">
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-2.5 shadow-sm">
+                        <i class="fa-solid fa-bell-concierge me-1.5"></i> Diyaar Waa Tahay - U Gudbi Reception-ka &rarr;
+                    </button>
+                </form>
+                {% elif order.status == 'Ready' %}
+                <div class="alert alert-info py-2 px-3 mb-2 small text-center fw-bold">
+                    <i class="fa-solid fa-check-circle me-1"></i> Waa loo gudbiyay Reception-ka (Awaiting Delivery)
+                </div>
+                <form action="{{ url_for('restaurant.deliver_order', order_id=order.id) }}" method="POST">
+                    <button type="submit" class="btn btn-outline-success w-100 fw-bold btn-sm">
+                        <i class="fa-solid fa-check-double me-1"></i> La Gaarsiiyay (Mark Delivered)
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="fa-solid fa-utensils fs-1 mb-3 text-gold opacity-50"></i>
+        <h5>Kitchen Queue Clear</h5>
+        <p class="small">All food and beverage orders have been prepared and delivered.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

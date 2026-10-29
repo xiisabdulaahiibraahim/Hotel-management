@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Suites & Royal Villas | {{ hotel_name }}</title>
+
+    <!-- Google Fonts & Font Awesome 6 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom Portal Styles -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+    
+    <style>
+        :root {
+            --gold-primary: #d4af37;
+            --gold-light: #f3e5ab;
+            --gold-dark: #aa820a;
+            --navy-dark: #070d19;
+            --navy-card: #0d1726;
+            --navy-border: rgba(212, 175, 55, 0.2);
+        }
+        body {
+            background-color: var(--navy-dark);
+            color: #e2e8f0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+        .hero-banner {
+            padding: 100px 0 60px;
+            background: linear-gradient(180deg, rgba(7, 13, 25, 0.95) 0%, rgba(13, 23, 38, 0.98) 100%);
+            border-bottom: 1px solid var(--navy-border);
+            text-align: center;
+        }
+        .suite-card {
+            background: var(--navy-card);
+            border: 1px solid var(--navy-border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .suite-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.15);
+            border-color: rgba(212, 175, 55, 0.45);
+        }
+        .suite-img-wrap {
+            height: 240px;
+            position: relative;
+            background: #1e293b;
+            overflow: hidden;
+        }
+        .suite-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .suite-card:hover .suite-img-wrap img {
+            transform: scale(1.05);
+        }
+        .suite-price-badge {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            background: rgba(7, 13, 25, 0.88);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--gold-primary);
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: var(--gold-light);
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .amenity-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Luxury Portal Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: rgba(7, 13, 25, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(212, 175, 55, 0.25);">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('guest_portal.index') }}">
+                <img src="{{ url_for('static', filename='img/hotel_logo.jpg') }}" alt="Logo" style="width: 38px; height: 38px; border-radius: 8px; border: 1px solid #d4af37; object-fit: cover;">
+                <span class="font-serif fw-bold text-gold fs-5">{{ hotel_name }}</span>
+            </a>
+            <button class="navbar-toggler border-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav ms-auto align-items-center gap-3">
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('guest_portal.index') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link text-gold active fw-bold" href="{{ url_for('guest_portal.rooms_catalog') }}">Suites & Villas</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('guest_portal.index') }}#dining">Fine Dining</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('guest_portal.index') }}#contact">Contact</a></li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-gold btn-sm px-3">
+                            <i class="fa-solid fa-user-shield me-1"></i> Staff Portal
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('guest_portal.index') }}#booking-search" class="btn btn-gold btn-sm px-3 fw-bold">
+                            <i class="fa-solid fa-calendar-check me-1"></i> Book Suite
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <section class="hero-banner">
+        <div class="container pt-4">
+            <span class="badge bg-gold bg-opacity-25 text-gold border border-gold px-3 py-1.5 rounded-pill text-uppercase fw-bold mb-3" style="font-size: 0.78rem; letter-spacing: 0.1em;">
+                The Signature Collection
+            </span>
+            <h1 class="display-5 font-serif fw-bold text-white mb-3">Our Royal Suites & Oceanfront Villas</h1>
+            <p class="text-muted mx-auto" style="max-width: 650px;">
+                Every suite at {{ hotel_name }} has been crafted with hand-selected Somali coastal aesthetics, bespoke Italian furnishings, and breathtaking Indian Ocean panoramic terraces.
+            </p>
+        </div>
+    </section>
+
+    <!-- Live Available Rooms Catalog Grid -->
+    <section class="py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h3 class="font-serif fw-bold text-white mb-1">
+                        <i class="fa-solid fa-hotel text-gold me-2"></i>Qolalka Hadda Bannaan (Available Rooms)
+                    </h3>
+                    <p class="text-muted small mb-0">Dooro qolka kugu haboon adigoo arkaya sawirradiisa rasmiga ah, davaqa uu ku yaal, iyo qaab-dhismeedka (Jiif, Fadhi, Musqul, Balakoon).</p>
+                </div>
+                <span class="badge bg-success bg-opacity-25 text-success border border-success px-3.5 py-2 fw-bold font-monospace fs-6">
+                    <i class="fa-solid fa-circle-check me-1.5"></i> {{ available_rooms|length if available_rooms else 0 }} Qol oo Bannaan
+                </span>
+            </div>
+
+            <!-- Category Filter Tabs -->
+            <div class="d-flex gap-2 mb-4 flex-wrap">
+                <button type="button" class="btn btn-sm btn-outline-gold active px-3.5 py-1.5 fw-bold rounded-pill suite-filter-btn" data-filter="all" onclick="filterSuiteCards('all', this)">
+                    All Available ({{ available_rooms|length }})
+                </button>
+                {% for t in room_types %}
+                {% set t_avail = (available_rooms|selectattr("room_type_id", "equalto", t.id)|list)|length %}
+                <button type="button" class="btn btn-sm btn-outline-gold px-3 py-1.5 fw-semibold rounded-pill suite-filter-btn" data-filter="type-{{ t.id }}" onclick="filterSuiteCards('type-{{ t.id }}', this)">
+                    {{ t.name }} <span class="badge bg-dark ms-1 text-gold">{{ t_avail }}</span>
+                </button>
+                {% endfor %}
+            </div>
+
+            {% if available_rooms %}
+            <div class="row g-4" id="suitesGrid">
+                {% for rm in available_rooms %}
+                <div class="col-lg-4 col-md-6 suite-card-item" data-type="type-{{ rm.room_type_id }}">
+                    <div class="suite-card">
+                        <div class="suite-img-wrap">
+                            <img src="{{ rm.display_image }}" alt="Room {{ rm.room_number }}" loading="lazy">
+                            <div class="position-absolute top-0 start-0 m-3 d-flex gap-2">
+                                <span class="badge bg-dark bg-opacity-90 border border-warning text-gold fw-bold px-2.5 py-1.5" style="font-size: 0.88rem;">
+                                    <i class="fa-solid fa-door-open me-1"></i> Room {{ rm.room_number }}
+                                </span>
+                                <span class="badge bg-success px-2 py-1.5 fw-bold" style="font-size: 0.78rem;">
+                                    Available
+                                </span>
+                            </div>
+                            <div class="suite-price-badge">
+                                ${{ "{:,.0f}".format(rm.room_type.base_price) }} <small class="text-white text-opacity-75" style="font-size:0.7rem;">/ habeen</small>
+                            </div>
+                        </div>
+                        <div class="p-4 d-flex flex-column flex-grow-1 justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h4 class="font-serif fw-bold text-white mb-0" style="font-size: 1.25rem;">{{ rm.room_type.name }}</h4>
+                                    <span class="badge bg-secondary bg-opacity-50 text-light border border-secondary" style="font-size: 0.72rem;">
+                                        Dabaqa {{ rm.floor }}-aad (Floor {{ rm.floor }})
+                                    </span>
+                                </div>
+                                <p class="text-white small mb-3" style="line-height: 1.5; color: #f1f5f9 !important;">
+                                    {{ rm.room_type.description or 'Deganaan iyo raaxo heer caalami ah oo leh adeeg 24 saac ah.' }}
+                                </p>
+
+                                <!-- Spaces Details: Jiif, Fadhi, Musqul, Balakoon -->
+                                <div class="p-3 rounded mb-3" style="background: rgba(7, 13, 25, 0.75); border: 1px solid rgba(212, 175, 55, 0.25);">
+                                    <div class="small mb-2 text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 75px;"><i class="fa-solid fa-bed me-1.5"></i> Jiif:</strong>
+                                        <span>{{ rm.room_type.bed_type }} (Sariir raaxo leh)</span>
+                                    </div>
+                                    <div class="small mb-2 text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 75px;"><i class="fa-solid fa-couch me-1.5"></i> Fadhi:</strong>
+                                        <span>{% if 'Suite' in rm.room_type.name or 'Villa' in rm.room_type.name %}Qol Fadhi oo ballaadhan (Living Lounge) &amp; Sofa{% else %}Aag Fadhi oo raaxo leh &amp; Miis shaqo{% endif %}</span>
+                                    </div>
+                                    <div class="small mb-2 text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 75px;"><i class="fa-solid fa-bath me-1.5"></i> Musqul:</strong>
+                                        <span>Musqul casri ah oo leh Qubays kulul &amp; qabow</span>
+                                    </div>
+                                    <div class="small text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 75px;"><i class="fa-solid fa-sun me-1.5"></i> Balakoon:</strong>
+                                        <span>{% if 'Ocean' in rm.room_type.name or 'Villa' in rm.room_type.name %}Balakoon weyn &amp; Muuqaalka Badda (Ocean View Terrace){% else %}Balakoon / Daaqad hawo iyo iftiin fiican{% endif %}</span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-1.5 mb-3">
+                                    <span class="amenity-chip"><i class="fa-solid fa-user-group text-gold"></i> Max {{ rm.room_type.capacity_adults }} Guests</span>
+                                    <span class="amenity-chip"><i class="fa-solid fa-maximize text-gold"></i> {{ rm.room_type.size_sqm }} m²</span>
+                                    <span class="amenity-chip"><i class="fa-solid fa-wifi text-gold"></i> WiFi</span>
+                                </div>
+                            </div>
+
+                            <a href="{{ url_for('guest_portal.index') }}#suites" class="btn btn-gold w-100 fw-bold shadow-sm">
+                                <i class="fa-solid fa-key me-1"></i> Qabso Qolka {{ rm.room_number }} (Book Now)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 border border-secondary border-opacity-25 rounded" style="background: rgba(13, 23, 38, 0.7);">
+                <i class="fa-solid fa-hotel text-gold fs-1 mb-3 opacity-50"></i>
+                <h4 class="text-white fw-bold">Dhammaan qolalka hadda waa la qabsaday (Fully Booked)</h4>
+                <p class="text-muted small mb-3">Ma jiraan qolal banaan xilligan. Fadlan la xiriir soo dhawaynta huteelka.</p>
+                <a href="{{ url_for('guest_portal.index') }}" class="btn btn-outline-gold btn-sm px-4">
+                    Ku laabo Bogga Hore (Back to Home)
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="background: #091224; border-top: 2px solid #d4af37; padding: 40px 0 25px; margin-top: 60px;">
+        <div class="container text-center">
+            <h5 class="font-serif fw-bold text-gold mb-2">{{ hotel_name }}</h5>
+            <p class="text-muted small mb-3">Ocean Boulevard, Lido Coastline, Mogadishu, Somalia | Reservations: +252 61 555-0100</p>
+            <div class="border-top border-secondary border-opacity-25 pt-3">
+                <small class="text-muted">&copy; 2026 {{ hotel_name }}. All Rights Reserved. Production Hotel Management System.</small>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function filterSuiteCards(category, btn) {
+            document.querySelectorAll('.suite-filter-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            if (btn) btn.classList.add('active');
+
+            const items = document.querySelectorAll('.suite-card-item');
+            items.forEach(el => {
+                if (category === 'all' || el.getAttribute('data-type') === category) {
+                    el.style.display = '';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Guest Laundry & Valet Services | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-gold">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('housekeeping.index') }}" class="text-gold">Housekeeping</a></li>
+                <li class="breadcrumb-item active text-light">Guest Laundry &amp; Valet</li>
+            </ol>
+        </nav>
+        <h2 class="h4 fw-bold mb-0 text-white">
+            <i class="fa-solid fa-shirt text-gold me-2"></i>Guest Laundry &amp; Valet Services (Dhaqidda Dharka Martida)
+        </h2>
+        <p class="text-muted small mb-0">Professional in-house garment care, dry cleaning, steam pressing, and automated room folio billing for hotel residents.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-gold fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#newLaundryModal">
+            <i class="fa-solid fa-plus-circle me-1.5"></i> Qabo Dalab Dhar-Dhaqid (New Laundry Order)
+        </button>
+    </div>
+</div>
+
+<!-- 5 Metric Cards -->
+<div class="row g-2 mb-3">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #0f172a;">
+            <div class="text-muted small" style="font-size:0.68rem;">Total Orders</div>
+            <div class="h5 fw-bold text-white my-0.5">{{ total_orders }}</div>
+            <div class="text-muted small" style="font-size:0.65rem;">All-time requests</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #f59e0b;">
+            <div class="text-muted small" style="font-size:0.68rem;">In Wash / Processing</div>
+            <div class="h5 fw-bold text-warning my-0.5">{{ in_wash }}</div>
+            <div class="text-muted small" style="font-size:0.65rem;">Washing &amp; Pressing</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #06b6d4;">
+            <div class="text-muted small" style="font-size:0.68rem;">Ready for Delivery</div>
+            <div class="h5 fw-bold text-info my-0.5">{{ ready_count }}</div>
+            <div class="text-muted small" style="font-size:0.65rem;">Folded &amp; Ironed</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #10b981;">
+            <div class="text-muted small" style="font-size:0.68rem;">Delivered to Suite</div>
+            <div class="h5 fw-bold text-success my-0.5">{{ delivered_count }}</div>
+            <div class="text-muted small" style="font-size:0.65rem;">Returned to guest</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #d97706;">
+            <div class="text-muted small" style="font-size:0.68rem;">Total Laundry Billings</div>
+            <div class="h5 fw-bold text-gold my-0.5">${{ "{:,.2f}".format(total_revenue) }}</div>
+            <div class="text-muted small" style="font-size:0.65rem;">Charged / Settled</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="card-luxury p-3 mb-4">
+    <!-- Filter Tabs -->
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('housekeeping.laundry_hub') }}" class="btn btn-outline-secondary {% if not status_filter %}active text-gold{% endif %}" style="font-size:0.75rem;">
+                All ({{ total_orders }})
+            </a>
+            <a href="{{ url_for('housekeeping.laundry_hub', status='Requested') }}" class="btn btn-outline-warning text-warning {% if status_filter == 'Requested' %}active{% endif %}" style="font-size:0.75rem;">
+                Requested
+            </a>
+            <a href="{{ url_for('housekeeping.laundry_hub', status='In Progress') }}" class="btn btn-outline-info text-info {% if status_filter == 'In Progress' %}active{% endif %}" style="font-size:0.75rem;">
+                In Wash / Ironing
+            </a>
+            <a href="{{ url_for('housekeeping.laundry_hub', status='Ready') }}" class="btn btn-outline-primary {% if status_filter == 'Ready' %}active{% endif %}" style="font-size:0.75rem;">
+                Ready for Suite
+            </a>
+            <a href="{{ url_for('housekeeping.laundry_hub', status='Delivered') }}" class="btn btn-outline-success {% if status_filter == 'Delivered' %}active{% endif %}" style="font-size:0.75rem;">
+                Delivered
+            </a>
+        </div>
+        <span class="badge bg-gold text-dark fw-bold px-2.5 py-1" style="font-size:0.72rem;">
+            <i class="fa-solid fa-water me-1"></i> Valet Laundry Processing
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury datatable mb-0" style="font-size: 0.8rem;">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Room / Suite</th>
+                    <th>Guest Name</th>
+                    <th>Garment &amp; Service</th>
+                    <th>Quantity</th>
+                    <th>Total ($)</th>
+                    <th>Folio Charged</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td class="font-monospace fw-bold text-gold"><code>#LND-{{ o.id + 1000 }}</code></td>
+                    <td>
+                        {% if o.room %}
+                        <span class="badge bg-primary"><i class="fa-solid fa-bed me-1"></i>Room {{ o.room.room_number }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Suite</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-semibold text-white">{{ o.booking.guest.full_name if o.booking and o.booking.guest else 'Guest' }}</td>
+                    <td>
+                        <strong class="text-white">{{ o.service.name if o.service else 'Laundry Service' }}</strong>
+                        {% if o.notes %}
+                        <div class="text-muted small mt-0.5" style="font-size:0.7rem;"><i class="fa-regular fa-comment-dots me-1 text-gold"></i>{{ o.notes }}</div>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-secondary px-2 py-0.5">{{ o.quantity }} pcs</span></td>
+                    <td class="fw-bold text-gold font-monospace">${{ "{:,.2f}".format(o.total_amount) }}</td>
+                    <td>
+                        {% if o.is_charged_to_folio %}
+                        <span class="badge bg-success bg-opacity-25 text-success border border-success" style="font-size:0.7rem;">
+                            <i class="fa-solid fa-check me-1"></i>Folio Charged
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">Direct</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if o.status == 'Delivered' %}
+                        <span class="badge bg-success"><i class="fa-solid fa-check-double me-1"></i>Delivered</span>
+                        {% elif o.status == 'Ready' %}
+                        <span class="badge bg-primary"><i class="fa-solid fa-bell me-1"></i>Ready for Room</span>
+                        {% elif o.status == 'In Progress' %}
+                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-water me-1"></i>In Wash / Ironing</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ o.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ o.created_at.strftime('%H:%M %b %d') }}</small></td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <button type="button" class="btn btn-xs btn-outline-gold py-1 px-2" data-bs-toggle="modal" data-bs-target="#editLaundryModal{{ o.id }}" title="Bedel Xaaladda (Update Status)">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            {% if current_user.has_role('Super Admin', 'Manager') %}
+                            <button type="button" class="btn btn-xs btn-outline-danger py-1 px-2" data-bs-toggle="modal" data-bs-target="#deleteLaundryModal{{ o.id }}" title="Tirtir">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" class="text-center text-muted py-4">No laundry orders recorded. Click "+ Qabo Dalab Dhar-Dhaqid" above to create one.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================================
+     NEW LAUNDRY ORDER MODAL
+     ============================================================ -->
+<div class="modal fade" id="newLaundryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light border border-gold">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-shirt text-gold me-2"></i>Qabo Dalab Dhar-Dhaqid (New Valet Laundry)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('housekeeping.create_laundry_order') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Dooro Qolka Martida (In-House Resident) *</label>
+                        <select name="booking_id" class="form-select bg-dark text-light border-secondary" required>
+                            <option value="">-- Dooro Qolka Martida --</option>
+                            {% for b in in_house %}
+                            <option value="{{ b.id }}">
+                                {% for br in b.booking_rooms %}Room {{ br.room.room_number }}{% endfor %} &bull; {{ b.guest.full_name if b.guest else 'Guest' }} ({{ b.booking_reference }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Nooca Dharka &amp; Adeegga (Garment / Service) *</label>
+                        <select name="service_id" id="laundryServiceSelect" class="form-select bg-dark text-light border-secondary" required onchange="calcLaundryTotal()">
+                            {% for s in services %}
+                            <option value="{{ s.id }}" data-price="{{ s.price }}">
+                                {{ s.name }} - ${{ "{:,.2f}".format(s.price) }} ({{ s.unit_type }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Tirada (Quantity / Pcs) *</label>
+                            <input type="number" name="quantity" id="laundryQtyInput" class="form-control bg-dark text-light border-secondary" value="1" min="1" max="100" required oninput="calcLaundryTotal()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Wadarta Qiimaha (Total)</label>
+                            <div class="form-control bg-black bg-opacity-30 border-secondary text-gold font-monospace fw-bold" id="laundryTotalDisplay">
+                                $0.00
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Faahfaahin &amp; Tilmaamo Gaar ah (Notes)</label>
+                        <input type="text" name="notes" class="form-control bg-dark text-light border-secondary" placeholder="tusaale: Express 2-hour, Gentle silk fabric, Extra starch">
+                    </div>
+
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="charge_folio" id="chargeFolioCheck" checked>
+                        <label class="form-check-label small text-light" for="chargeFolioCheck">
+                            Si toos ah ugu dalac biilka qolka martida (Post to Guest Room Folio).
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-4 fw-bold">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Diiwaangeli Dalabka
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     UPDATE & DELETE MODALS (Outside Table)
+     ============================================================ -->
+{% for o in orders %}
+<!-- Edit Modal -->
+<div class="modal fade" id="editLaundryModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light border border-secondary border-opacity-50">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-pen-to-square text-gold me-2"></i>Bedel Xaaladda Dalabka #LND-{{ o.id + 1000 }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('housekeeping.update_laundry_status', order_id=o.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="p-3 mb-3 rounded bg-black bg-opacity-30 border border-secondary border-opacity-25 small">
+                        <div><strong>Qolka:</strong> {{ 'Room ' ~ o.room.room_number if o.room else 'Suite' }}</div>
+                        <div><strong>Martida:</strong> {{ o.booking.guest.full_name if o.booking and o.booking.guest else 'Guest' }}</div>
+                        <div><strong>Adeegga:</strong> {{ o.quantity }}x {{ o.service.name if o.service else 'Item' }} - ${{ "{:,.2f}".format(o.total_amount) }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Xaaladda Gaarsiinta (Status) *</label>
+                        <select name="status" class="form-select bg-dark text-light border-secondary" required>
+                            <option value="Requested" {% if o.status == 'Requested' %}selected{% endif %}>Requested (La Qaabilay)</option>
+                            <option value="In Progress" {% if o.status == 'In Progress' %}selected{% endif %}>In Progress (Washing / Ironing socota)</option>
+                            <option value="Ready" {% if o.status == 'Ready' %}selected{% endif %}>Ready (Diyaar ah - Ready for Suite)</option>
+                            <option value="Delivered" {% if o.status == 'Delivered' %}selected{% endif %}>Delivered (Loo Geeyay Qolka)</option>
+                            <option value="Cancelled" {% if o.status == 'Cancelled' %}selected{% endif %}>Cancelled (La Joojiyay)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Kaydi Isbedelka</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteLaundryModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light border border-danger">
+            <div class="modal-header border-danger border-opacity-25">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Tirtir Dalabka #LND-{{ o.id + 1000 }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('housekeeping.delete_laundry_order', order_id=o.id) }}" method="POST">
+                <div class="modal-body">
+                    <p class="small mb-2">Ma hubtaa inaad tirtirto dalabkan dharka:</p>
+                    <div class="p-2.5 rounded bg-danger bg-opacity-10 border border-danger border-opacity-25 small mb-2">
+                        <div><strong>Qolka:</strong> {{ 'Room ' ~ o.room.room_number if o.room else 'Suite' }}</div>
+                        <div><strong>Total:</strong> ${{ "{:,.2f}".format(o.total_amount) }}</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold">Haa, Tirtir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function calcLaundryTotal() {
+    const sel = document.getElementById('laundryServiceSelect');
+    const qtyInput = document.getElementById('laundryQtyInput');
+    const display = document.getElementById('laundryTotalDisplay');
+    if (!sel || !qtyInput || !display) return;
+
+    const opt = sel.options[sel.selectedIndex];
+    const price = opt ? parseFloat(opt.dataset.price || 0) : 0;
+    const qty = parseInt(qtyInput.value || 1, 10);
+    const total = price * qty;
+    display.textContent = '$' + total.toFixed(2);
+}
+document.addEventListener('DOMContentLoaded', calcLaundryTotal);
+</script>
+{% endblock %}
+

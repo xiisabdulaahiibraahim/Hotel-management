@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Financial & Accounting Control Hub | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Top Role Banner -->
+    <div class="card card-luxury mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-dark" style="width: 52px; height: 52px; background: #38bdf8; font-size: 1.5rem;">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="fw-bold mb-0 text-white">Financial &amp; General Ledger Audit Terminal</h4>
+                            <span class="badge bg-info text-dark fw-bold">Finance &amp; Accounts</span>
+                        </div>
+                        <p class="text-white-50 mb-0 small">Welcome back, <strong>{{ current_user.full_name or current_user.username }}</strong>. Real-time folios, revenue recognition, cash flows, and expense auditing.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('billing.index') }}" class="btn btn-gold btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> Billing &amp; Folios
+                    </a>
+                    <a href="{{ url_for('expenses.index') }}" class="btn btn-outline-light btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-wallet me-1"></i> Expenses &amp; Cash
+                    </a>
+                    <a href="{{ url_for('reports.index') }}" class="btn btn-outline-info btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-chart-line me-1"></i> Financial Reports
+                    </a>
+                    <a href="{{ url_for('reports.export_excel') }}" class="btn btn-success btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 Financial KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-success border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Revenue (This Month)</div>
+                        <h3 class="fw-bold text-success mt-1 mb-0">${{ "{:,.2f}".format(rev_month) }}</h3>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded"><i class="fa-solid fa-sack-dollar fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-arrow-trend-up text-success me-1"></i> Year-to-Date: <strong>${{ "{:,.2f}".format(rev_year) }}</strong></div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-danger border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Operational Expenses</div>
+                        <h3 class="fw-bold text-danger mt-1 mb-0">${{ "{:,.2f}".format(total_expenses) }}</h3>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger p-2 rounded"><i class="fa-solid fa-receipt fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Disbursements &amp; Supplies</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-primary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Net Profit (EBITDA)</div>
+                        <h3 class="fw-bold text-primary mt-1 mb-0">${{ "{:,.2f}".format(net_profit) }}</h3>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded"><i class="fa-solid fa-scale-balanced fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Operating Margin</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-warning border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Unpaid Balances</div>
+                        <h3 class="fw-bold text-warning mt-1 mb-0">${{ "{:,.2f}".format(total_receivable) }}</h3>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning p-2 rounded"><i class="fa-solid fa-file-invoice fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Pending folio receivables</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-info border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Today's Collections</div>
+                        <h3 class="fw-bold text-info mt-1 mb-0">${{ "{:,.2f}".format(rev_today) }}</h3>
+                    </div>
+                    <span class="badge bg-info bg-opacity-10 text-info p-2 rounded"><i class="fa-solid fa-cash-register fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-clock me-1"></i> Cash &amp; Digital payments</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Dedicated Financial Charts -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-line text-gold me-2"></i>Daily Revenue Trend (Last 7 Days)</h6>
+                    <span class="badge bg-light text-dark border">Daily Receipts</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="accountantRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-pie text-danger me-2"></i>Expenses by Cost Center</h6>
+                    <span class="badge bg-light text-dark border">Cost Breakdown</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="accountantExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unsettled Guest Folios Table -->
+    <div class="card bg-white border border-secondary border-opacity-25 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Open Invoices &amp; Unsettled Guest Folios</h6>
+            <a href="{{ url_for('billing.index', status='Issued') }}" class="btn btn-sm btn-outline-secondary">View All Invoices</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small text-uppercase">
+                        <th>Invoice Ref</th>
+                        <th>Guest Name</th>
+                        <th>Booking Reference</th>
+                        <th>Stay Period</th>
+                        <th>Total Billed</th>
+                        <th>Paid to Date</th>
+                        <th>Balance Due</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in open_invoices %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-dark font-monospace text-gold px-2 py-1">{{ inv.invoice_number }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ inv.guest.full_name if inv.guest else 'Guest' }}</div>
+                            <small class="text-muted">{{ inv.guest.email if inv.guest else '' }}</small>
+                        </td>
+                        <td>
+                            <code>{{ inv.booking.booking_reference if inv.booking else 'N/A' }}</code>
+                        </td>
+                        <td>
+                            {% if inv.booking %}
+                            <small class="text-dark">{{ inv.booking.check_in_date.strftime('%b %d') }} &rarr; {{ inv.booking.check_out_date.strftime('%b %d') }}</small>
+                            {% else %}
+                            <small class="text-muted">Direct</small>
+                            {% endif %}
+                        </td>
+                        <td class="fw-semibold text-dark">${{ "{:,.2f}".format(inv.total_amount) }}</td>
+                        <td class="text-success">${{ "{:,.2f}".format(inv.paid_amount) }}</td>
+                        <td>
+                            <span class="fw-bold {% if inv.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                                ${{ "{:,.2f}".format(inv.balance_due) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if inv.status == 'Paid' %}bg-success{% elif inv.status == 'Partial' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ inv.status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('billing.folio', invoice_id=inv.id) }}" class="btn btn-sm btn-gold fw-bold">
+                                <i class="fa-solid fa-file-invoice me-1"></i> Audit Folio
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">No open invoices with balance due. All guest folios settled!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Revenue Chart
+    const ctxRev = document.getElementById('accountantRevenueChart');
+    if (ctxRev) {
+        new Chart(ctxRev.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {{ revenue_labels|tojson }},
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: {{ revenue_values|tojson }},
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#10b981',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Expense Chart
+    const ctxExp = document.getElementById('accountantExpenseChart');
+    if (ctxExp) {
+        new Chart(ctxExp.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ expense_labels|tojson }},
+                datasets: [{
+                    data: {{ expense_values|tojson }},
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Guest CRM & Loyalty | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Guest Management (CRM)</h2>
+        <p class="text-muted small mb-0">Customer directory, loyalty tiers, stay histories, and VIP flags.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-light btn-sm px-3" onclick="window.print()">
+            <i class="fa-solid fa-print me-1.5"></i> Print List
+        </button>
+        <a href="{{ url_for('reports.export_csv') }}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fa-solid fa-file-csv me-1.5"></i> Export CSV
+        </a>
+        <a href="{{ url_for('guests.add') }}" class="btn btn-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-user-plus me-1.5"></i> Add Guest
+        </a>
+    </div>
+</div>
+
+<!-- Tier Filters & Search -->
+<div class="card-luxury p-3 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('guests.index') }}" class="btn btn-outline-secondary {% if not selected_tier %}active text-gold{% endif %}">All Guests</a>
+            <a href="{{ url_for('guests.index', tier='VIP Platinum') }}" class="btn btn-outline-secondary {% if selected_tier == 'VIP Platinum' %}active text-gold{% endif %}">VIP Platinum</a>
+            <a href="{{ url_for('guests.index', tier='Gold') }}" class="btn btn-outline-secondary {% if selected_tier == 'Gold' %}active text-gold{% endif %}">Gold</a>
+            <a href="{{ url_for('guests.index', tier='Silver') }}" class="btn btn-outline-secondary {% if selected_tier == 'Silver' %}active text-gold{% endif %}">Silver</a>
+            <a href="{{ url_for('guests.index', tier='Standard') }}" class="btn btn-outline-secondary {% if selected_tier == 'Standard' %}active text-gold{% endif %}">Standard</a>
+            <a href="{{ url_for('guests.index', tier='Blacklisted') }}" class="btn btn-outline-danger {% if selected_tier == 'Blacklisted' %}active{% endif %}"><i class="fa-solid fa-ban me-1"></i>Blacklisted</a>
+        </div>
+
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" name="q" value="{{ search or '' }}" class="form-control form-control-sm" placeholder="Search name, phone, passport...">
+            <button type="submit" class="btn btn-gold btn-sm px-3">Search</button>
+        </form>
+    </div>
+</div>
+
+<!-- Guests Table -->
+<div class="card-luxury p-4">
+    <div class="table-responsive">
+        <table class="table-luxury datatable">
+            <thead>
+                <tr>
+                    <th>Guest Name</th>
+                    <th>Contact</th>
+                    <th>ID / Passport</th>
+                    <th>Nationality</th>
+                    <th>VIP Tier</th>
+                    <th>Loyalty Points</th>
+                    <th>Stays</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in guests %}
+                <tr>
+                    <td>
+                        <div class="fw-bold text-light">{{ g.full_name }}</div>
+                        {% if g.is_blacklisted %}
+                        <span class="badge bg-danger" style="font-size: 0.65rem;"><i class="fa-solid fa-ban me-1"></i>Blacklisted</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div><small class="text-light">{{ g.phone }}</small></div>
+                        <div><small class="text-muted">{{ g.email }}</small></div>
+                    </td>
+                    <td>
+                        <span class="text-muted small">{{ g.id_type }}:</span><br>
+                        <code>{{ g.id_number }}</code>
+                        {% if g.id_photo %}
+                        <a href="{{ url_for('static', filename=g.id_photo) }}" target="_blank" class="badge bg-info text-dark ms-1 text-decoration-none" title="Passport/ID Scan Attached">
+                            <i class="fa-solid fa-file-shield me-0.5"></i> Scan
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>{{ g.nationality }}</td>
+                    <td>
+                        {% if g.vip_tier == 'VIP Platinum' %}
+                        <span class="badge bg-gold text-white"><i class="fa-solid fa-crown me-1"></i>VIP Platinum</span>
+                        {% elif g.vip_tier == 'Gold' %}
+                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-star me-1"></i>Gold</span>
+                        {% elif g.vip_tier == 'Silver' %}
+                        <span class="badge bg-secondary"><i class="fa-solid fa-award me-1"></i>Silver</span>
+                        {% else %}
+                        <span class="badge bg-dark border border-secondary">Standard</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-bold text-gold">{{ g.loyalty_points }} pts</td>
+                    <td><span class="badge bg-secondary">{{ g.bookings|length }}</span></td>
+                    <td class="text-end">
+                        <a href="{{ url_for('guests.profile', guest_id=g.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa-solid fa-user-circle me-1"></i> Profile
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

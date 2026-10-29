@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Guest Folio: {{ invoice.invoice_number }} | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('billing.index') }}" class="text-gold">Billing</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">{{ invoice.invoice_number }}</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">Guest Master Folio: <span class="text-gold">{{ invoice.invoice_number }}</span></h2>
+        <span class="{{ invoice.status_badge }}">{{ invoice.status }}</span>
+        <span class="text-muted ms-2 small">Booking Ref: <strong class="text-light">{{ invoice.booking.booking_reference if invoice.booking else 'N/A' }}</strong></span>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#addChargeModal">
+            <i class="fa-solid fa-plus me-1"></i> Add Charge
+        </button>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#paymentModal">
+            <i class="fa-solid fa-credit-card me-1"></i> Record Payment
+        </button>
+        <a href="{{ url_for('billing.print_invoice', invoice_id=invoice.id) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-print me-1"></i> Print Invoice
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Folio Guest Card -->
+    <div class="col-lg-8">
+        <div class="card-luxury p-4 h-100 shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #d97706 !important;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h5 class="fw-bold mb-1" style="color: #0f172a;">{{ invoice.guest.full_name if invoice.guest else 'Valued Guest' }}</h5>
+                    <p class="text-muted small mb-2">{{ invoice.guest.email }} | {{ invoice.guest.phone }}</p>
+                    <div class="small text-muted">
+                        <span>Nationality: <strong style="color: #0f172a;">{{ invoice.guest.nationality }}</strong></span> | 
+                        <span>Tier: <span class="badge bg-gold text-dark fw-bold">{{ invoice.guest.vip_tier }}</span></span>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code" class="img-fluid rounded border border-warning shadow-sm" style="width: 80px; height: 80px;">
+                    <div class="text-muted font-monospace mt-1" style="font-size: 0.65rem;">Digital Folio QR</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Balances -->
+    <div class="col-lg-4">
+        <div class="card-luxury p-4 h-100 shadow-sm" style="border: 1px solid #cbd5e1; border-top: 3px solid #0f172a !important;">
+            <h6 class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 0.05em;">Balance Summary</h6>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted fw-medium">Total Charges:</span>
+                <span class="fw-bold font-monospace fs-6" style="color: #0f172a;">${{ "{:,.2f}".format(invoice.total_amount) }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted fw-medium">Total Paid:</span>
+                <span class="fw-bold font-monospace fs-6 text-success">${{ "{:,.2f}".format(invoice.paid_amount) }}</span>
+            </div>
+            <hr class="border-secondary border-opacity-25 my-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold" style="color: #0f172a;">Balance Due:</span>
+                <span class="fs-4 fw-bold font-monospace {% if invoice.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                    ${{ "{:,.2f}".format(invoice.balance_due) }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Itemized Line Charges -->
+<div class="card-luxury p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-list-check text-gold me-2"></i>Itemized Folio Charges</h5>
+        <span class="badge bg-secondary">{{ invoice.items|length }} Items</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Unit Price</th>
+                    <th>Qty</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items %}
+                <tr>
+                    <td><small class="text-muted">{{ item.date_incurred.strftime('%b %d, %Y') }}</small></td>
+                    <td>
+                        <span class="badge bg-dark border border-secondary text-gold">{{ item.category }}</span>
+                    </td>
+                    <td class="fw-semibold">{{ item.description }}</td>
+                    <td>${{ "{:,.2f}".format(item.unit_price) }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td class="text-end fw-bold text-light">${{ "{:,.2f}".format(item.total_price) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-3">No charges posted to this folio yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5" class="text-end text-muted">Subtotal:</td>
+                    <td class="text-end fw-semibold text-light">${{ "{:,.2f}".format(invoice.subtotal) }}</td>
+                </tr>
+                {% if invoice.discount_amount > 0 %}
+                <tr>
+                    <td colspan="5" class="text-end text-success">Discount:</td>
+                    <td class="text-end text-success fw-semibold">-${{ "{:,.2f}".format(invoice.discount_amount) }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td colspan="5" class="text-end text-muted">Tax / VAT ({{ invoice.tax_rate }}%):</td>
+                    <td class="text-end fw-semibold text-light">${{ "{:,.2f}".format(invoice.tax_amount) }}</td>
+                </tr>
+                <tr class="fs-5 border-top border-secondary">
+                    <td colspan="5" class="text-end fw-bold text-gold">Grand Total:</td>
+                    <td class="text-end fw-bold text-gold">${{ "{:,.2f}".format(invoice.total_amount) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Payments History -->
+<div class="card-luxury p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-money-check-dollar text-success me-2"></i>Payment Transactions</h5>
+        <span class="badge bg-success">{{ invoice.payments|length }} Payments</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury">
+            <thead>
+                <tr>
+                    <th>Payment Ref</th>
+                    <th>Date & Time</th>
+                    <th>Payment Method</th>
+                    <th>Transaction Ref / Note</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in invoice.payments %}
+                <tr>
+                    <td class="fw-bold text-gold">{{ p.payment_reference }}</td>
+                    <td><small class="text-muted">{{ p.payment_date.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                    <td>
+                        <span class="badge bg-primary">{{ p.payment_method }}</span>
+                    </td>
+                    <td><small class="text-muted">{{ p.transaction_reference or 'Direct' }}</small></td>
+                    <td class="fw-bold text-success">${{ "{:,.2f}".format(p.amount) }}</td>
+                    <td><span class="badge bg-success">{{ p.status }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-3">No payments received for this invoice yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Add Charge / Fee -->
+<div class="modal fade" id="addChargeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25 py-2">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-file-circle-plus text-gold me-1"></i> Post New Charge / Service Fee
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('billing.add_charge', invoice_id=invoice.id) }}" method="POST">
+                <div class="modal-body p-3">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Charge Category</label>
+                        <select name="category" class="form-select" required>
+                            <option value="Room Charge">Room Charge</option>
+                            <option value="Restaurant">Restaurant / Dining</option>
+                            <option value="Laundry">Laundry Service</option>
+                            <option value="Spa">Spa & Wellness</option>
+                            <option value="Minibar">Minibar Consumption</option>
+                            <option value="Airport Transfer">Airport Transfer</option>
+                            <option value="Early Check-in">Early Check-in Surcharge</option>
+                            <option value="Late Check-out">Late Check-out Surcharge</option>
+                            <option value="Damage / Loss">Damage / Loss Surcharge</option>
+                            <option value="Other Fee">Other Surcharge / Fee</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Description / Reason</label>
+                        <input type="text" name="description" class="form-control" placeholder="Enter charge description (e.g. Dry Cleaning 2 Suits)" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.8rem;">Unit Price ($)</label>
+                            <input type="number" step="0.01" min="0.01" name="unit_price" class="form-control" placeholder="0.00" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.8rem;">Quantity</label>
+                            <input type="number" name="quantity" value="1" min="1" class="form-control" placeholder="1" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25 py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Add Charge to Folio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Record Payment -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25 py-2">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-money-bill-wave text-success me-1"></i> Process Guest Payment
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('billing.make_payment', invoice_id=invoice.id) }}" method="POST">
+                <div class="modal-body p-3">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Amount to Pay ($)</label>
+                        <input type="number" step="0.01" min="0.01" name="amount" value="{{ invoice.balance_due if invoice.balance_due > 0 else 0.0 }}" class="form-control fs-5 fw-bold text-success" placeholder="Enter amount to pay (e.g. 150.00)" required>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-light opacity-75" style="font-size: 0.75rem;">Current balance due: <strong class="text-gold">${{ "{:,.2f}".format(invoice.balance_due) }}</strong></small>
+                            <span class="badge bg-secondary" style="font-size:0.68rem;">Accepts any amount</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Payment Channel / Method</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Credit Card">Credit Card (Visa / Mastercard)</option>
+                            <option value="EVC Plus">EVC Plus (Hormuud Mobile Money)</option>
+                            <option value="Zaad">Zaad Service (Telesom)</option>
+                            <option value="Sahal">Sahal (Golis)</option>
+                            <option value="Bank Transfer">Bank Wire Transfer</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Transaction Reference / Receipt Code</label>
+                        <input type="text" name="transaction_reference" class="form-control" placeholder="Enter transaction code (e.g. EVC-TRX-88214)">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25 py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Confirm & Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

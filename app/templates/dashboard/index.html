@@ -1,0 +1,1609 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Dashboard | The Grand Horizon HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Executive White KPI Cards with Hover Elevate */
+    .kpi-card-white {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        display: block;
+        text-decoration: none !important;
+        color: #0f172a !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .kpi-card-white:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        border-color: #d97706;
+        color: #0f172a !important;
+    }
+    .kpi-card-white .kpi-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-card-white .kpi-value {
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 0.35rem;
+    }
+    .kpi-card-white .kpi-sub {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .kpi-icon-badge {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    /* Chart Container Styling - Clean White with Soft Dark Lines */
+    .chart-box {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .chart-box:hover {
+        border-color: #94a3b8 !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.09);
+    }
+    .chart-box h6 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #0f172a !important;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .chart-canvas-wrap {
+        position: relative;
+        height: 220px;
+        width: 100%;
+    }
+    .chart-canvas-wrap-lg {
+        position: relative;
+        height: 260px;
+        width: 100%;
+    }
+
+    /* Chart Section Nav Pills - Crisp White / Light Mode */
+    .nav-chart-pills .nav-link {
+        color: #475569;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0.45rem 0.95rem;
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
+        transition: all 0.2s ease;
+    }
+    .nav-chart-pills .nav-link:hover {
+        color: #0f172a;
+        background: #e2e8f0;
+        border-color: #94a3b8;
+    }
+    .nav-chart-pills .nav-link.active {
+        color: #ffffff !important;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        border-color: #d97706 !important;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h2 class="h3 fw-bold mb-1 text-white">
+            <i class="fa-solid fa-chart-line text-gold me-2"></i>Executive Hotel Operations Dashboard
+        </h2>
+        <p class="text-muted small mb-0">High-level real-time overview: financial yields, room occupancies, guest CRM, and operations intelligence.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <a href="{{ url_for('reports.index') }}" class="btn btn-outline-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-chart-pie me-1"></i> Full Reports
+        </a>
+        <a href="{{ url_for('checkin.index') }}" class="btn btn-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-bell-concierge me-1"></i> Front Desk
+        </a>
+    </div>
+</div>
+
+<!-- ============================================================
+     ROLE-BASED WELCOME BANNER
+     ============================================================ -->
+{% set role_name = current_user.role.name if current_user.role else 'Staff' %}
+<div class="mb-4 rounded-3 p-3 d-flex align-items-center justify-content-between flex-wrap gap-3"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(217,119,6,0.35); box-shadow: 0 4px 20px rgba(0,0,0,0.25);">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+             style="width:48px;height:48px;font-size:1.2rem;flex-shrink:0;
+             {% if role_name in ['Super Admin','Admin'] %}background:linear-gradient(135deg,#7c3aed,#4f46e5);
+             {% elif role_name == 'Manager' %}background:linear-gradient(135deg,#d97706,#92400e);
+             {% elif role_name == 'Receptionist' %}background:linear-gradient(135deg,#0ea5e9,#0369a1);
+             {% elif role_name == 'Housekeeping' %}background:linear-gradient(135deg,#10b981,#065f46);
+             {% elif role_name in ['Restaurant/POS Staff','Restaurant'] %}background:linear-gradient(135deg,#f97316,#c2410c);
+             {% elif role_name == 'Accountant' %}background:linear-gradient(135deg,#06b6d4,#0e7490);
+             {% else %}background:linear-gradient(135deg,#64748b,#334155);{% endif %}">
+            {% if role_name in ['Super Admin','Admin'] %}<i class="fa-solid fa-shield-halved"></i>
+            {% elif role_name == 'Manager' %}<i class="fa-solid fa-briefcase"></i>
+            {% elif role_name == 'Receptionist' %}<i class="fa-solid fa-concierge-bell"></i>
+            {% elif role_name == 'Housekeeping' %}<i class="fa-solid fa-broom"></i>
+            {% elif role_name in ['Restaurant/POS Staff','Restaurant'] %}<i class="fa-solid fa-utensils"></i>
+            {% elif role_name == 'Accountant' %}<i class="fa-solid fa-calculator"></i>
+            {% else %}<i class="fa-solid fa-user"></i>{% endif %}
+        </div>
+        <div>
+            <div class="text-white fw-bold" style="font-size:1.05rem;">
+                Welcome back, <span class="text-gold">{{ current_user.first_name or current_user.username }}</span>
+            </div>
+            <div class="text-muted" style="font-size:0.78rem;">
+                <span class="badge me-1 px-2 py-1" style="font-size:0.7rem;background:rgba(217,119,6,0.2);color:#f59e0b;border:1px solid rgba(217,119,6,0.4);">{{ role_name }}</span>
+                {{ now.strftime('%A, %d %B %Y') if now else '' }} &bull; Hotel Management System
+            </div>
+        </div>
+    </div>
+    <!-- Role-specific quick action buttons -->
+    <div class="d-flex flex-wrap gap-2">
+        {% if role_name in ['Super Admin','Admin'] %}
+            <a href="{{ url_for('users.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#4f46e5;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-users-gear me-1"></i>Users & Roles</a>
+            <a href="{{ url_for('settings.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#7c3aed;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-gear me-1"></i>Settings</a>
+            <a href="{{ url_for('reports.index') }}" class="btn btn-sm fw-semibold px-3" style="background:rgba(217,119,6,0.85);color:#fff;font-size:0.78rem;"><i class="fa-solid fa-chart-pie me-1"></i>Reports</a>
+            <a href="{{ url_for('communications.hub') }}" class="btn btn-sm fw-semibold px-3" style="background:#22c55e;color:#fff;font-size:0.78rem;"><i class="fa-brands fa-whatsapp me-1"></i>WhatsApp / SMS</a>
+            <a href="{{ url_for('settings.backup_hub') }}" class="btn btn-sm fw-semibold px-3" style="background:#0284c7;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-database me-1"></i>DB Backup</a>
+            <a href="{{ url_for('restaurant.table_reservations') }}" class="btn btn-sm fw-semibold px-3" style="background:#f59e0b;color:#000;font-size:0.78rem;"><i class="fa-solid fa-chair me-1"></i>Table Bookings</a>
+            <a href="{{ url_for('restaurant.recipes') }}" class="btn btn-sm fw-semibold px-3" style="background:#8b5cf6;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-mortar-pestle me-1"></i>Kitchen Recipes</a>
+        {% elif role_name == 'Manager' %}
+            <a href="{{ url_for('bookings.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#d97706;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-calendar-check me-1"></i>Bookings</a>
+            <a href="{{ url_for('reports.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#92400e;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-chart-bar me-1"></i>Reports</a>
+            <a href="{{ url_for('rooms.status_board') }}" class="btn btn-sm fw-semibold px-3" style="background:rgba(30,41,59,0.9);color:#f59e0b;border:1px solid #d97706;font-size:0.78rem;"><i class="fa-solid fa-hotel me-1"></i>Room Board</a>
+        {% elif role_name == 'Receptionist' %}
+            <a href="{{ url_for('checkin.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#0ea5e9;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Check-In</a>
+            <a href="{{ url_for('bookings.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#0369a1;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-calendar me-1"></i>Reservations</a>
+            <a href="{{ url_for('guests.index') }}" class="btn btn-sm fw-semibold px-3" style="background:rgba(30,41,59,0.9);color:#38bdf8;border:1px solid #0ea5e9;font-size:0.78rem;"><i class="fa-solid fa-user-group me-1"></i>Guests</a>
+        {% elif role_name == 'Housekeeping' %}
+            <a href="{{ url_for('housekeeping.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#10b981;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-broom me-1"></i>Housekeeping</a>
+            <a href="{{ url_for('rooms.status_board') }}" class="btn btn-sm fw-semibold px-3" style="background:#065f46;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-hotel me-1"></i>Room Status</a>
+            <a href="{{ url_for('maintenance.index') }}" class="btn btn-sm fw-semibold px-3" style="background:rgba(30,41,59,0.9);color:#34d399;border:1px solid #10b981;font-size:0.78rem;"><i class="fa-solid fa-wrench me-1"></i>Maintenance</a>
+        {% elif role_name in ['Restaurant/POS Staff','Restaurant'] %}
+            <a href="{{ url_for('restaurant.pos') }}" class="btn btn-sm fw-semibold px-3" style="background:#f97316;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-cash-register me-1"></i>POS Terminal</a>
+            <a href="{{ url_for('restaurant.kds') }}" class="btn btn-sm fw-semibold px-3" style="background:#c2410c;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-kitchen-set me-1"></i>Kitchen Display</a>
+            <a href="{{ url_for('delivery.index') }}" class="btn btn-sm fw-semibold px-3" style="background:rgba(30,41,59,0.9);color:#fb923c;border:1px solid #f97316;font-size:0.78rem;"><i class="fa-solid fa-truck-fast me-1"></i>Deliveries</a>
+        {% elif role_name == 'Accountant' %}
+            <a href="{{ url_for('billing.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#06b6d4;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-file-invoice-dollar me-1"></i>Billing & Folios</a>
+            <a href="{{ url_for('reports.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#0e7490;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-chart-line me-1"></i>Financial Reports</a>
+        {% else %}
+            <a href="{{ url_for('bookings.index') }}" class="btn btn-sm fw-semibold px-3" style="background:#475569;color:#fff;font-size:0.78rem;"><i class="fa-solid fa-calendar me-1"></i>Bookings</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ============================================================
+     8 PRIMARY METRIC CARDS (CRISP WHITE CARDS + DIRECT LINKS)
+     ============================================================ -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Occupancy Rate -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('rooms.status_board') }}" class="kpi-card-white" title="Click to view Room Status Board">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-bed me-1 text-gold"></i> Occupancy Rate</div>
+                    <div class="kpi-value text-gold">{{ occupancy_rate }}%</div>
+                    <div class="kpi-sub">{{ occupied_rooms }} of {{ total_rooms }} Rooms Occupied</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(217, 119, 6, 0.12); color: #d97706;">
+                    <i class="fa-solid fa-hotel"></i>
+                </div>
+            </div>
+            <div class="progress mt-2.5" style="height: 5px; background: #e2e8f0;">
+                <div class="progress-bar bg-gold" style="width: {{ occupancy_rate }}%;"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2" style="font-size:0.7rem; color:#64748b;">
+                <span>View Room Board</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 2: Today's Revenue -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('billing.index') }}" class="kpi-card-white" title="Click to view Billing & Folios">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-money-bill-wave me-1 text-success"></i> Revenue (Today)</div>
+                    <div class="kpi-value text-success">${{ "{:,.2f}".format(rev_today) }}</div>
+                    <div class="kpi-sub">Month: ${{ "{:,.2f}".format(rev_month) }}</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-1 border-top" style="font-size:0.7rem; color:#64748b;">
+                <span>View All Invoices</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 3: Today's Check-Ins -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('checkin.index') }}" class="kpi-card-white" title="Click to view Front Desk Check-in">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-arrow-right-to-bracket me-1 text-primary"></i> Front Desk Arrivals</div>
+                    <div class="kpi-value text-primary">{{ today_checkins }}</div>
+                    <div class="kpi-sub">Expected Departures: {{ today_checkouts }}</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <i class="fa-solid fa-bell-concierge"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-1 border-top" style="font-size:0.7rem; color:#64748b;">
+                <span>Process Check-Ins</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 4: Available Rooms -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('rooms.index') }}" class="kpi-card-white" title="Click to view Rooms Management">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-door-open me-1 text-info"></i> Available Rooms</div>
+                    <div class="kpi-value text-info">{{ available_rooms }}</div>
+                    <div class="kpi-sub">Cleaning: {{ cleaning_rooms }} &bull; Mnt: {{ maintenance_rooms }}</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4;">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-1 border-top" style="font-size:0.7rem; color:#64748b;">
+                <span>Manage Rooms</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 5: Guest CRM & Loyalty -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('guests.index') }}" class="kpi-card-white" title="Click to view Guest CRM">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-users me-1 text-secondary"></i> Guest CRM Profiles</div>
+                    <div class="kpi-value text-dark">{{ total_guests }}</div>
+                    <div class="kpi-sub">Active Loyalty Profiles</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-1 border-top" style="font-size:0.7rem; color:#64748b;">
+                <span>View Guest Profiles</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 6: Housekeeping Queue -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('housekeeping.index') }}" class="kpi-card-white" title="Click to view Housekeeping Tasks">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-broom me-1 text-warning"></i> Housekeeping Tasks</div>
+                    <div class="kpi-value text-warning">{{ pending_hk_tasks }}</div>
+                    <div class="kpi-sub">Rooms Pending Clean/Inspect</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                    <i class="fa-solid fa-spray-can-sparkles"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-1 border-top" style="font-size:0.7rem; color:#64748b;">
+                <span>Housekeeping Queue</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 7: Maintenance Tickets -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('maintenance.index') }}" class="kpi-card-white" title="Click to view Maintenance Tickets">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-screwdriver-wrench me-1 text-danger"></i> Maintenance Tickets</div>
+                    <div class="kpi-value text-danger">{{ open_tickets }}</div>
+                    <div class="kpi-sub">Open Repair Orders</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-1 border-top" style="font-size:0.7rem; color:#64748b;">
+                <span>View Work Orders</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 8: Restaurant / POS Today -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('restaurant.pos') }}" class="kpi-card-white" title="Click to view Restaurant / POS">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-cash-register me-1 text-success"></i> Restaurant / POS Sales</div>
+                    <div class="kpi-value text-success">${{ "{:,.2f}".format(restaurant_today_sales) }}</div>
+                    <div class="kpi-sub">{{ restaurant_today_count }} Orders Served Today</div>
+                </div>
+                <div class="kpi-icon-badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-1 border-top" style="font-size:0.7rem; color:#64748b;">
+                <span>Open POS Terminal</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- ============================================================
+     HOTEL OPERATIONS & ENTERPRISE COMMAND HUB
+     ============================================================ -->
+<div class="card card-luxury mb-4 border-0 shadow-sm p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 border-bottom border-secondary border-opacity-25 pb-2">
+        <div>
+            <h5 class="fw-bold mb-0 text-white">
+                <i class="fa-solid fa-sliders text-gold me-2"></i>Hotel Operations &amp; Enterprise Command Hub
+            </h5>
+            <small class="text-muted">Direct controls for Mid-Stay Room Transfers, Security Deposits, WhatsApp/SMS, Table Bookings, Recipe Stock, and DB Backups.</small>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-dark border border-secondary text-gold px-2.5 py-1.5"><i class="fa-solid fa-circle-check text-success me-1"></i>All Enterprise Systems Active</span>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- 1. Room Shifting / Mid-Stay Transfer -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-solid fa-arrows-split-up-and-left me-1"></i>Room Shifting</span>
+                        <span class="badge bg-secondary text-light">{{ in_house_guests|length }} In-House</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Mid-Stay Room Transfer (Qol-Beddel)</h6>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">U wareeji martida qol kale, u bedel RFID Key Card-ka, toosna qolkii hore ugu dir housekeeping nadiifin qoto-dheer.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#execShiftModal">
+                        <i class="fa-solid fa-arrows-split-up-and-left me-1"></i> Shift Guest Room
+                    </button>
+                    <a href="{{ url_for('checkin.index') }}" class="btn btn-sm btn-outline-secondary" title="Front Desk Check-in">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Security Deposit Management -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-warning bg-opacity-15 text-warning-emphasis fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-solid fa-shield-halved me-1"></i>Security Escrow</span>
+                        <span class="badge bg-warning text-dark fw-bold">Active Escrow</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Security Deposits Held (Deebaaji)</h6>
+                    <h3 class="fw-bold text-warning mb-1">${{ "{:,.2f}".format(total_held_deposits) }}</h3>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">Lacagta deebaajiga ee la hayo hadda. Xilliga check-out-ka waa lagu goyn karaa biilka ama dib baa loogu celinayaa martida.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('checkin.index') }}" class="btn btn-sm btn-outline-warning text-dark fw-bold w-100">
+                        <i class="fa-solid fa-hand-holding-dollar me-1"></i> View Held Deposits
+                    </a>
+                    <a href="{{ url_for('billing.index') }}" class="btn btn-sm btn-outline-secondary" title="View Folios">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. SMS & WhatsApp Communications -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-success bg-opacity-10 text-success fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-brands fa-whatsapp me-1"></i>Instant Gateway</span>
+                        <span class="badge bg-success text-white">Live Dispatches</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">SMS &amp; WhatsApp Guest Gateway</h6>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">U dir macmiisha fariimaha xaqiijinta booska, furaha qolka, WiFi password-ka, iyo risiidhka biilka toos WhatsApp ama SMS.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('communications.hub') }}" class="btn btn-sm btn-success fw-bold w-100">
+                        <i class="fa-brands fa-whatsapp me-1"></i> Open Communications Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Dining Table Reservations -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-info bg-opacity-10 text-info fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-solid fa-chair me-1"></i>Dining Bookings</span>
+                        <span class="badge bg-info text-white">{{ today_reservations_count }} Tables Today</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Dining Table Reservations</h6>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">Qabashada miisaska makhaayadda (Lido Ocean view, VIP booths, terrace) iyo kuraasta xafladaha gaarka ah.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('restaurant.table_reservations') }}" class="btn btn-sm btn-outline-info text-dark fw-bold w-100">
+                        <i class="fa-solid fa-calendar-check me-1"></i> Manage Table Bookings
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Kitchen Recipes & Stock Depletion -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-danger bg-opacity-10 text-danger fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-solid fa-mortar-pestle me-1"></i>Auto-Depletion</span>
+                        <span class="badge {% if low_stock_items_count > 0 %}bg-danger{% else %}bg-success{% endif %} text-white">
+                            {% if low_stock_items_count > 0 %}{{ low_stock_items_count }} Low Stock{% else %}Stock Healthy{% endif %}
+                        </span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Recipe &amp; Raw Stock Depletion</h6>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">Alaabta ceeriin ee cuntada (bariis, hilib, iwm) oo toos looga jarayo bakhaarka marka jikadu amarka hesho.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('restaurant.recipes') }}" class="btn btn-sm btn-outline-danger fw-bold w-100">
+                        <i class="fa-solid fa-kitchen-set me-1"></i> Recipe Stock Matrix
+                    </a>
+                    <a href="{{ url_for('inventory.index') }}" class="btn btn-sm btn-outline-secondary" title="View Inventory">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Database Backup & Disaster Recovery -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-dark bg-opacity-10 text-dark fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-solid fa-database me-1"></i>Data Protection</span>
+                        <span class="badge bg-success text-white">ACID Safe</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Database Backup &amp; Download Hub</h6>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">Hal gujin ku qaado nuqul kayd ah (Instant Backup) oo soo degso faylka (.db) si xogta hotelka loo badbaadiyo.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('settings.backup_hub') }}" class="btn btn-sm btn-dark fw-bold w-100">
+                        <i class="fa-solid fa-cloud-arrow-down me-1"></i> Backup &amp; Restore Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     18 COMPREHENSIVE CHARTS SUITE (ALL VISIBLE & STACKED LIKE REPORTS)
+     With interactive Category Switcher / Filter Pills
+     ============================================================ -->
+<div class="card-luxury p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-0 text-white">
+                <i class="fa-solid fa-chart-pie text-gold me-2"></i>Executive Analytics Center (18 Modern Visual Charts Suite)
+            </h5>
+            <small class="text-muted">Full-spectrum visual intelligence — revenue, occupancy, front desk flows, housekeeping, maintenance, and 24/7 service SLAs.</small>
+        </div>
+        <!-- Category Nav Pills (Filter or View All Stacked) -->
+        <ul class="nav nav-pills nav-chart-pills gap-1" id="chartFilterPills">
+            <li class="nav-item">
+                <button class="nav-link active" id="pill-all" type="button" onclick="switchChartSection('all', this)">
+                    <i class="fa-solid fa-layer-group me-1"></i> All Categories (18)
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="pill-fin" type="button" onclick="switchChartSection('sec-fin', this)">
+                    <i class="fa-solid fa-dollar-sign me-1"></i> Revenue & Finance (5)
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="pill-rooms" type="button" onclick="switchChartSection('sec-rooms', this)">
+                    <i class="fa-solid fa-bed me-1"></i> Rooms & Inventory (4)
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="pill-guests" type="button" onclick="switchChartSection('sec-guests', this)">
+                    <i class="fa-solid fa-user-group me-1"></i> Front Desk & Guests (5)
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="pill-ops" type="button" onclick="switchChartSection('sec-ops', this)">
+                    <i class="fa-solid fa-gears me-1"></i> Operations & SLAs (4)
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div id="allChartsContainer">
+        <!-- ==========================================
+             SECTION 1: REVENUE & FINANCE (Charts 1 - 5)
+             ========================================== -->
+        <div class="chart-section mb-5" id="sec-fin">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-gold text-dark fw-bold px-3 py-1.5"><i class="fa-solid fa-dollar-sign me-1"></i> Section 1: Revenue & Finance</span>
+                    <span class="text-muted small">5 Intelligence Charts</span>
+                </div>
+                <small class="text-muted">Yield, ADR, RevPAR & Payment Channels</small>
+            </div>
+            <div class="row g-3">
+                <!-- Chart 1: 7-Day Revenue Line Chart -->
+                <div class="col-lg-8">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-chart-line text-gold me-1.5"></i> Chart 1: Daily Revenue Collections (Last 7 Days)</span>
+                            <span class="badge bg-secondary">Daily Flow ($)</span>
+                        </h6>
+                        <div class="chart-canvas-wrap-lg">
+                            <canvas id="chart1_revTrend"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: 6-Month Revenue Comparison -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-chart-simple text-success me-1.5"></i> Chart 2: Monthly Growth</span>
+                            <span class="badge bg-success bg-opacity-25 text-success">6 Months</span>
+                        </h6>
+                        <div class="chart-canvas-wrap-lg">
+                            <canvas id="chart2_monthlyRev"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Revenue Streams Breakdown -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-pie-chart text-info me-1.5"></i> Chart 3: Revenue Streams Ratio</span>
+                            <span class="badge bg-info bg-opacity-25 text-info">Yield Mix</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart3_revStreams"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Payment Methods Breakdown -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-credit-card text-warning me-1.5"></i> Chart 4: Payment Channels</span>
+                            <span class="badge bg-warning bg-opacity-25 text-warning">EVC / Card / Cash</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart4_paymentMethods"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 5: ADR vs RevPAR Metric Performance -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-scale-balanced text-primary me-1.5"></i> Chart 5: ADR vs RevPAR</span>
+                            <span class="badge bg-primary bg-opacity-25 text-primary">Yield Index</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart5_adrRevpar"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 2: ROOMS & INVENTORY (Charts 6 - 9)
+             ========================================== -->
+        <div class="chart-section mb-5" id="sec-rooms">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-info text-dark fw-bold px-3 py-1.5"><i class="fa-solid fa-bed me-1"></i> Section 2: Rooms & Inventory</span>
+                    <span class="text-muted small">4 Intelligence Charts</span>
+                </div>
+                <small class="text-muted">Status Allocation, Category Demand & Occupancy Trajectory</small>
+            </div>
+            <div class="row g-3">
+                <!-- Chart 6: Live Room Inventory Status -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-doughnut-chart text-gold me-1.5"></i> Chart 6: Room Status Distribution</span>
+                            <span class="badge bg-secondary">Real-Time</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart6_roomStatus"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 7: Suite Type Demand -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-bed text-info me-1.5"></i> Chart 7: Suite Category Occupancy</span>
+                            <span class="badge bg-info bg-opacity-25 text-info">By Room Type</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart7_roomTypes"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 8: Floor-by-Floor Occupancy -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-building text-success me-1.5"></i> Chart 8: Floor Occupancy Stack</span>
+                            <span class="badge bg-success bg-opacity-25 text-success">Levels 1 - 5</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart8_floorOcc"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 9: 7-Day Occupancy History % -->
+                <div class="col-12">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-wave-square text-warning me-1.5"></i> Chart 9: Weekly Property Occupancy Velocity (% Rate)</span>
+                            <span class="badge bg-warning bg-opacity-25 text-warning">Historical Daily %</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart9_occVelocity"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 3: FRONT DESK & GUESTS (Charts 10 - 14)
+             ========================================== -->
+        <div class="chart-section mb-5" id="sec-guests">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-1.5"><i class="fa-solid fa-user-group me-1"></i> Section 3: Front Desk & Guests</span>
+                    <span class="text-muted small">5 Intelligence Charts</span>
+                </div>
+                <small class="text-muted">Hourly Arrivals, Guest Origins, CRM Loyalty & Channel Mix</small>
+            </div>
+            <div class="row g-3">
+                <!-- Chart 10: Hourly Check-in Arrival Curve -->
+                <div class="col-lg-6">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-regular fa-clock text-info me-1.5"></i> Chart 10: Hourly Guest Arrival Peak</span>
+                            <span class="badge bg-info bg-opacity-25 text-info">Front Desk Load</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart10_hourlyArrivals"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 11: Guest Origin / Nationalities -->
+                <div class="col-lg-6">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-earth-africa text-gold me-1.5"></i> Chart 11: Guest Geographic Origin</span>
+                            <span class="badge bg-secondary">Domestic & Diaspora</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart11_nationalities"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 12: VIP Loyalty Tiers -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-crown text-warning me-1.5"></i> Chart 12: VIP Tier Demographics</span>
+                            <span class="badge bg-warning bg-opacity-25 text-warning">Loyalty CRM</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart12_vipTiers"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 13: Booking Channels (Direct vs OTA) -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-network-wired text-primary me-1.5"></i> Chart 13: Reservation Channels</span>
+                            <span class="badge bg-primary bg-opacity-25 text-primary">Web / Walk-in / OTA</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart13_bookingChannels"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 14: Stay Duration (Length of Stay) -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-calendar-days text-success me-1.5"></i> Chart 14: Average Length of Stay</span>
+                            <span class="badge bg-success bg-opacity-25 text-success">Nights Profile</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart14_stayDuration"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 4: OPERATIONS & SLAS (Charts 15 - 18)
+             ========================================== -->
+        <div class="chart-section mb-2" id="sec-ops">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success text-dark fw-bold px-3 py-1.5"><i class="fa-solid fa-gears me-1"></i> Section 4: Operations & SLAs</span>
+                    <span class="text-muted small">4 Intelligence Charts</span>
+                </div>
+                <small class="text-muted">Housekeeping Turnaround, Maintenance SLAs & Cost Controls</small>
+            </div>
+            <div class="row g-3">
+                <!-- Chart 15: Housekeeping Turnaround Time -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-broom text-gold me-1.5"></i> Chart 15: Cleaning Turnaround Speed</span>
+                            <span class="badge bg-secondary">Minutes / Floor</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart15_hkTurnaround"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 16: Maintenance Categories -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-wrench text-danger me-1.5"></i> Chart 16: Maintenance Issue Tickets</span>
+                            <span class="badge bg-danger bg-opacity-25 text-danger">Equipment & AC</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart16_maintenance"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 17: Operational Expenditure Breakdown -->
+                <div class="col-lg-4">
+                    <div class="chart-box">
+                        <h6>
+                            <span><i class="fa-solid fa-gas-pump text-warning me-1.5"></i> Chart 17: Operating Cost Centers</span>
+                            <span class="badge bg-warning bg-opacity-25 text-warning">Fuel / Supplies</span>
+                        </h6>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chart17_expenses"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 18: Front Desk & Guest Service SLA Compliance % (full-width) -->
+                <div class="col-12">
+                    <div class="chart-box" style="border: 1px solid rgba(16, 185, 129, 0.25); background: linear-gradient(135deg, rgba(16,185,129,0.05) 0%, transparent 60%);">
+                        <h6>
+                            <span><i class="fa-solid fa-gauge-high text-success me-1.5"></i> Chart 18: Front Desk & Guest Service SLA Compliance (Response Speed KPIs)</span>
+                            <span class="badge bg-success bg-opacity-25 text-success">% Target Met</span>
+                        </h6>
+                        <div class="chart-canvas-wrap-lg">
+                            <canvas id="chart18_serviceSLA"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chart-canvas-wrap-lg { position: relative; height: 220px; width: 100%; }
+</style>
+
+<!-- ============================================================
+     RECENT RESERVATIONS & LIVE AUDIT FEED (STACKED FULL-WIDTH)
+     ============================================================ -->
+<div class="row g-4 mb-4">
+    <!-- Section 1: Recent Bookings Table (Full-Width Stacked Card) -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="fw-bold mb-0 text-white">
+                    <i class="fa-solid fa-calendar-check text-gold me-1.5"></i> Recent Guest Reservations
+                </h5>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                        <i class="fa-solid fa-print me-1"></i> Print
+                    </button>
+                    <a href="{{ url_for('bookings.index') }}" class="btn btn-sm btn-outline-gold">
+                        View All Bookings <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table-luxury">
+                    <thead>
+                        <tr>
+                            <th>Ref Code</th>
+                            <th>Guest Name</th>
+                            <th>Stay Dates</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in recent_bookings %}
+                        <tr>
+                            <td class="fw-bold text-gold">{{ b.booking_reference }}</td>
+                            <td>{{ b.guest.full_name if b.guest else 'Guest' }}</td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ b.check_in_date.strftime('%b %d') }} - {{ b.check_out_date.strftime('%b %d') }}
+                                </small>
+                            </td>
+                            <td class="fw-bold">${{ "{:,.2f}".format(b.total_amount) }}</td>
+                            <td>
+                                <span class="{{ b.status_badge }}">{{ b.status }}</span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('bookings.show', booking_id=b.id) }}" class="btn btn-sm btn-outline-secondary" title="View Booking Details">
+                                    <i class="fa-regular fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No recent bookings found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Live Audit Activity Feed (Full-Width Stacked Card) -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="fw-bold mb-0 text-white">
+                    <i class="fa-solid fa-bolt text-gold me-1.5"></i> Live Operations Log
+                </h5>
+                <span class="badge bg-secondary">{{ recent_activities|length }} Recent Activity Logs</span>
+            </div>
+            <div style="max-height: 380px; overflow-y: auto;">
+                {% for act in recent_activities %}
+                <div class="d-flex gap-3 mb-3 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="rounded-circle bg-gold bg-opacity-10 text-gold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-circle-dot" style="font-size: 0.75rem;"></i>
+                    </div>
+                    <div class="small">
+                        <div class="fw-semibold text-light">{{ act.action }}</div>
+                        <div class="text-muted" style="font-size: 0.78rem;">{{ act.details or act.entity_name }}</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">{{ act.created_at.strftime('%H:%M %b %d') }} by {{ act.user.username if act.user else 'System' }}</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-muted small text-center py-4">No activity logged yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js 4.4 from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+    // Universal Chart styling defaults - Clean Executive Contrast
+    Chart.defaults.color = '#334155';
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    const gridColor = '#e2e8f0';
+
+    // Interactive Category Switcher / Stack Filter Controller
+    window.switchChartSection = function(secId, btn) {
+        document.querySelectorAll('#chartFilterPills .nav-link').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const sections = ['sec-fin', 'sec-rooms', 'sec-guests', 'sec-ops'];
+        if (secId === 'all') {
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'block';
+            });
+        } else {
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = (id === secId) ? 'block' : 'none';
+            });
+        }
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 50);
+    };
+
+    // -------------------------------------------------------------
+    // CHART 1: 7-Day Revenue Trend (KEPT AS REQUESTED)
+    // -------------------------------------------------------------
+    const ctx1 = document.getElementById('chart1_revTrend').getContext('2d');
+    const grad1 = ctx1.createLinearGradient(0, 0, 0, 240);
+    grad1.addColorStop(0, 'rgba(245, 158, 11, 0.35)');
+    grad1.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: {{ days_labels|tojson }},
+            datasets: [{
+                label: 'Revenue ($)',
+                data: {{ revenue_trend|tojson }},
+                borderColor: '#f59e0b',
+                backgroundColor: grad1,
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#d97706',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 2: 6-Month Monthly Revenue (KEPT AS REQUESTED)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart2_monthlyRev'), {
+        type: 'bar',
+        data: {
+            labels: {{ months_labels|tojson }},
+            datasets: [{
+                label: 'Gross Collections ($)',
+                data: {{ monthly_revenue|tojson }},
+                backgroundColor: '#10b981',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 3: Revenue Streams Breakdown (KEPT AS REQUESTED)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart3_revStreams'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ revenue_streams|tojson }}),
+            datasets: [{
+                data: Object.values({{ revenue_streams|tojson }}),
+                backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#a855f7'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, color: '#334155' } } },
+            cutout: '65%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 4: Payment Channels (Modern High-Contrast Doughnut with Cutout)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart4_paymentMethods'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ payment_methods_data|tojson }}),
+            datasets: [{
+                data: Object.values({{ payment_methods_data|tojson }}),
+                backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'],
+                hoverBackgroundColor: ['#0369a1', '#059669', '#d97706', '#7c3aed', '#dc2626'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, color: '#334155', font: { weight: '600' } } }
+            },
+            cutout: '62%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 5: ADR vs RevPAR Metric Performance (Dual Spline with Soft Gradient Area)
+    // -------------------------------------------------------------
+    const ctx5 = document.getElementById('chart5_adrRevpar').getContext('2d');
+    const gradAdr = ctx5.createLinearGradient(0, 0, 0, 220);
+    gradAdr.addColorStop(0, 'rgba(2, 132, 199, 0.22)');
+    gradAdr.addColorStop(1, 'rgba(2, 132, 199, 0.0)');
+
+    const gradRevpar = ctx5.createLinearGradient(0, 0, 0, 220);
+    gradRevpar.addColorStop(0, 'rgba(244, 63, 94, 0.22)');
+    gradRevpar.addColorStop(1, 'rgba(244, 63, 94, 0.0)');
+
+    new Chart(ctx5, {
+        type: 'line',
+        data: {
+            labels: {{ days_labels|tojson }},
+            datasets: [
+                {
+                    label: 'ADR ($)',
+                    data: {{ adr_trend|tojson }},
+                    borderColor: '#0284c7',
+                    backgroundColor: gradAdr,
+                    borderWidth: 2.8,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#0369a1',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7
+                },
+                {
+                    label: 'RevPAR ($)',
+                    data: {{ revpar_trend|tojson }},
+                    borderColor: '#f43f5e',
+                    backgroundColor: gradRevpar,
+                    borderWidth: 2.8,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#e11d48',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12, color: '#334155', font: { weight: '600' } } },
+                tooltip: {
+                    callbacks: { label: ctx => ` ${ctx.dataset.label}: $${Number(ctx.parsed.y).toFixed(2)}` }
+                }
+            },
+            scales: {
+                y: { beginAtZero: false, grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => '$' + v } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 6: Live Room Status Distribution (Vibrant Segmented Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart6_roomStatus'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ room_statuses|tojson }}),
+            datasets: [{
+                data: Object.values({{ room_statuses|tojson }}),
+                backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#64748b'],
+                hoverBackgroundColor: ['#059669', '#dc2626', '#d97706', '#475569'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } }
+            },
+            cutout: '68%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 7: Suite Category Occupancy (Modern Horizontal Multi-Color Bar)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart7_roomTypes'), {
+        type: 'bar',
+        data: {
+            labels: {{ room_type_labels|tojson }},
+            datasets: [{
+                axis: 'y',
+                label: 'Rooms Occupied',
+                data: {{ room_type_counts|tojson }},
+                backgroundColor: ['#d97706', '#0284c7', '#10b981', '#8b5cf6', '#ec4899', '#64748b'],
+                borderRadius: 6,
+                barThickness: 18
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#64748b', stepSize: 1 } },
+                y: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 8: Floor Occupancy Stack (Modern High-Contrast Stacked Bars)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart8_floorOcc'), {
+        type: 'bar',
+        data: {
+            labels: {{ floors_labels|tojson }},
+            datasets: [
+                {
+                    label: 'Occupied',
+                    data: {{ floor_occupied|tojson }},
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4,
+                    barThickness: 24
+                },
+                {
+                    label: 'Available',
+                    data: {{ floor_available|tojson }},
+                    backgroundColor: '#10b981',
+                    borderRadius: 4,
+                    barThickness: 24
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, color: '#334155', font: { weight: '600' } } } },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { color: '#64748b', font: { weight: '600' } } },
+                y: { stacked: true, grid: { color: gridColor }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 9: Weekly Occupancy Velocity % (Gold Wave Spline with Glowing Fill)
+    // -------------------------------------------------------------
+    const ctx9 = document.getElementById('chart9_occVelocity').getContext('2d');
+    const grad9 = ctx9.createLinearGradient(0, 0, 0, 220);
+    grad9.addColorStop(0, 'rgba(217, 119, 6, 0.28)');
+    grad9.addColorStop(1, 'rgba(217, 119, 6, 0.0)');
+
+    new Chart(ctx9, {
+        type: 'line',
+        data: {
+            labels: {{ days_labels|tojson }},
+            datasets: [{
+                label: 'Occupancy Rate (%)',
+                data: {{ weekly_occupancy|tojson }},
+                borderColor: '#d97706',
+                backgroundColor: grad9,
+                borderWidth: 3,
+                tension: 0.42,
+                fill: true,
+                pointBackgroundColor: '#b45309',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` Occupancy: ${ctx.parsed.y}%` } }
+            },
+            scales: {
+                y: { min: 0, max: 100, grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => v + '%' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 10: Hourly Guest Arrival Peak (Electric Cyan Area Curve)
+    // -------------------------------------------------------------
+    const ctx10 = document.getElementById('chart10_hourlyArrivals').getContext('2d');
+    const grad10 = ctx10.createLinearGradient(0, 0, 0, 220);
+    grad10.addColorStop(0, 'rgba(6, 182, 212, 0.32)');
+    grad10.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+    new Chart(ctx10, {
+        type: 'line',
+        data: {
+            labels: {{ hourly_labels|tojson }},
+            datasets: [{
+                label: 'Check-in Arrivals',
+                data: {{ hourly_arrivals|tojson }},
+                borderColor: '#0891b2',
+                backgroundColor: grad10,
+                borderWidth: 2.8,
+                tension: 0.42,
+                fill: true,
+                pointBackgroundColor: '#0e7490',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#64748b', stepSize: 1 } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 11: Guest Origin / Nationalities (Modern Contrast Polar Area)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart11_nationalities'), {
+        type: 'polarArea',
+        data: {
+            labels: Object.keys({{ guest_nationalities|tojson }}),
+            datasets: [{
+                data: Object.values({{ guest_nationalities|tojson }}),
+                backgroundColor: [
+                    'rgba(217, 119, 6, 0.82)',
+                    'rgba(2, 132, 199, 0.82)',
+                    'rgba(16, 185, 129, 0.82)',
+                    'rgba(139, 92, 246, 0.82)',
+                    'rgba(236, 72, 153, 0.82)',
+                    'rgba(249, 115, 22, 0.82)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 12, color: '#334155', font: { weight: '600' } } } },
+            scales: { r: { grid: { color: gridColor }, ticks: { display: false } } }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 12: VIP Loyalty Tiers (Luxury Emblem Ring Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart12_vipTiers'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ vip_tiers_data|tojson }}),
+            datasets: [{
+                data: Object.values({{ vip_tiers_data|tojson }}),
+                backgroundColor: ['#1e293b', '#d97706', '#94a3b8', '#b45309'],
+                hoverBackgroundColor: ['#0f172a', '#b45309', '#64748b', '#78350f'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '62%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 13: Booking Channels (Gradient Floating Bars)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart13_bookingChannels'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ booking_channels|tojson }}),
+            datasets: [{
+                label: '% Share',
+                data: Object.values({{ booking_channels|tojson }}),
+                backgroundColor: '#8b5cf6',
+                hoverBackgroundColor: '#7c3aed',
+                borderRadius: 6,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => v + '%' } },
+                x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 14: Stay Duration (Emerald Rounded Vertical Bars)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart14_stayDuration'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ stay_duration|tojson }}),
+            datasets: [{
+                label: 'Guests',
+                data: Object.values({{ stay_duration|tojson }}),
+                backgroundColor: ['#059669', '#10b981', '#34d399', '#6ee7b7'],
+                borderRadius: 6,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#64748b', stepSize: 1 } },
+                x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 15: Housekeeping Turnaround Time (Color-Coded Speed Brackets)
+    // -------------------------------------------------------------
+    const hkValues = Object.values({{ hk_turnaround|tojson }});
+    new Chart(document.getElementById('chart15_hkTurnaround'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ hk_turnaround|tojson }}),
+            datasets: [{
+                label: 'Minutes',
+                data: hkValues,
+                backgroundColor: hkValues.map(v => v <= 20 ? '#10b981' : v <= 30 ? '#f59e0b' : '#ef4444'),
+                borderRadius: 6,
+                barThickness: 22
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 16: Maintenance Issues (Alert Category Segmented Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart16_maintenance'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ maintenance_issues|tojson }}),
+            datasets: [{
+                data: Object.values({{ maintenance_issues|tojson }}),
+                backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#0284c7', '#64748b'],
+                hoverBackgroundColor: ['#dc2626', '#ea580c', '#d97706', '#0369a1', '#475569'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '64%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 17: Operational Expenditure Breakdown (High-Contrast Donut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart17_expenses'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ expense_breakdown|tojson }}),
+            datasets: [{
+                data: Object.values({{ expense_breakdown|tojson }}),
+                backgroundColor: ['#f59e0b', '#10b981', '#0284c7', '#ef4444', '#8b5cf6'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 12, color: '#334155', font: { weight: '600' } } } },
+            cutout: '58%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // CHART 18: Front Desk & Guest Service SLA Compliance (Horizontal Progress Thresholds)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('chart18_serviceSLA'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ service_sla_metrics|tojson }}),
+            datasets: [{
+                label: 'SLA Compliance %',
+                data: Object.values({{ service_sla_metrics|tojson }}),
+                backgroundColor: Object.values({{ service_sla_metrics|tojson }}).map(v =>
+                    v >= 97 ? '#10b981' : v >= 93 ? '#f59e0b' : '#ef4444'
+                ),
+                borderRadius: 6,
+                barThickness: 22
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: { label: ctx => ` ${ctx.parsed.x}% Target Met` }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: gridColor },
+                    ticks: { color: '#64748b', callback: v => v + '%' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { color: '#0f172a', font: { size: 11, weight: '600' } }
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Executive Room Shift Modal -->
+<div class="modal fade" id="execShiftModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-gold"><i class="fa-solid fa-arrows-split-up-and-left me-2"></i>Executive Room Shift (Qol-Beddel)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="execShiftForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Select In-House Guest / Booking</label>
+                        <select class="form-select bg-dark text-light border-secondary" id="execShiftBookingSelect" onchange="updateShiftAction(this)" required>
+                            <option value="">-- Dooro Martida Qolka Ku Jirta --</option>
+                            {% for b in in_house_guests %}
+                            {% set rm = b.booking_rooms[0].room if b.booking_rooms else None %}
+                            <option value="{{ b.id }}" data-room="{{ rm.room_number if rm else '' }}" data-action="{{ url_for('checkin.shift_room', booking_id=b.id) }}">
+                                Room {{ rm.room_number if rm else 'N/A' }} - {{ b.guest.full_name }} ({{ b.booking_reference }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">New Target Room (Qolka Cusub ee Bannaan)</label>
+                        <select name="new_room_id" class="form-select bg-dark text-light border-secondary" required>
+                            <option value="">-- Dooro Qol Bannaan (Available Room) --</option>
+                            {% for r in available_rooms_list %}
+                            <option value="{{ r.id }}">
+                                Room {{ r.room_number }} (Floor {{ r.floor }}) - {{ r.room_type.name }} (${{ r.room_type.base_price }}/night)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">New RFID Key Card Code</label>
+                        <input type="text" name="key_card_number" class="form-control bg-dark text-light border-secondary" placeholder="e.g. KC-204-991">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Reason for Room Shift</label>
+                        <input type="text" name="reason" class="form-control bg-dark text-light border-secondary" placeholder="Guest request, AC maintenance, room upgrade...">
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="adjust_rate" id="chkRateExec" checked>
+                        <label class="form-check-label text-light small" for="chkRateExec">
+                            Automatically adjust folio room rate if suite pricing differs.
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm fw-bold">Confirm Room Shift</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateShiftAction(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.getAttribute('data-action')) {
+        document.getElementById('execShiftForm').action = opt.getAttribute('data-action');
+    }
+}
+</script>
+
+{% endblock %}

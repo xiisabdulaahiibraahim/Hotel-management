@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Opening WhatsApp | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card-luxury p-4 text-center">
+            <div class="rounded-circle bg-success bg-opacity-25 d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; border: 2px solid #22c55e;">
+                <i class="fa-brands fa-whatsapp text-success fs-1"></i>
+            </div>
+            
+            <h4 class="fw-bold text-light mb-1">Fariinta WhatsApp-ka waa Diyaar!</h4>
+            <p class="text-muted small mb-4">
+                Waxaa laguu diyaariyay fariinta loo dirayo <strong>{{ recipient_name }}</strong> (<span class="text-gold">+{{ phone }}</span>).
+            </p>
+
+            <a href="{{ wa_url }}" target="_blank" id="waOpenBtn" class="btn btn-success w-100 py-2.5 fw-bold mb-3 shadow">
+                <i class="fa-brands fa-whatsapp me-2 fs-5"></i> Furo WhatsApp Hadda (Open WhatsApp)
+            </a>
+
+            <a href="{{ url_for('communications.hub') }}" class="btn btn-outline-secondary btn-sm w-100">
+                <i class="fa-solid fa-arrow-left me-1"></i> Dib ugu laabo Communications Hub
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-trigger WhatsApp in new tab after 800ms
+    setTimeout(function() {
+        window.open("{{ wa_url|safe }}", "_blank");
+    }, 600);
+</script>
+{% endblock %}
+

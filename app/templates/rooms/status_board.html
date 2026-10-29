@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Room Status Board | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Room Status Board</h2>
+        <p class="text-muted small mb-0">Visual color-coded room matrix across all hotel floors.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <!-- Legend -->
+        <span class="badge bg-success me-1">Available</span>
+        <span class="badge bg-danger me-1">Occupied</span>
+        <span class="badge bg-primary me-1">Reserved</span>
+        <span class="badge bg-warning text-dark me-1">Cleaning</span>
+        <span class="badge bg-secondary me-1">Maintenance</span>
+        <a href="{{ url_for('rooms.index') }}" class="btn btn-outline-secondary btn-sm ms-2">
+            <i class="fa-solid fa-list me-1"></i> List View
+        </a>
+    </div>
+</div>
+
+<!-- Matrix by Floor -->
+{% for floor_num, rooms in floors_dict.items() %}
+<div class="card-luxury p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+        <h5 class="fw-bold mb-0">
+            <i class="fa-solid fa-layer-group text-gold me-2"></i>Floor {{ floor_num }}
+        </h5>
+        <span class="badge bg-secondary" style="font-size: 0.75rem;">{{ rooms|length }} Rooms</span>
+    </div>
+
+    <div class="row g-3">
+        {% for r in rooms %}
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            {% set status_class = 'room-available' %}
+            {% if r.status == 'Occupied' %}
+                {% set status_class = 'room-occupied' %}
+            {% elif r.status == 'Cleaning' %}
+                {% set status_class = 'room-cleaning' %}
+            {% elif r.status == 'Reserved' %}
+                {% set status_class = 'room-reserved' %}
+            {% elif r.status in ['Maintenance', 'Out of Order'] %}
+                {% set status_class = 'room-maintenance' %}
+            {% endif %}
+
+            <div class="room-grid-card {{ status_class }} card-luxury" data-bs-toggle="modal" data-bs-target="#roomModal{{ r.id }}" style="cursor: pointer;">
+                <div class="fw-bold fs-4 mb-1 text-light">{{ r.room_number }}</div>
+                <div class="small text-gold fw-semibold text-truncate">{{ r.room_type.name }}</div>
+                <div class="mt-2">
+                    <span class="badge {{ r.status_badge_class }}" style="font-size: 0.72rem;">{{ r.status }}</span>
+                </div>
+                <div class="mt-2 text-muted" style="font-size: 0.7rem;">
+                    <i class="fa-solid fa-spray-can-sparkles me-1"></i>{{ r.clean_status }}
+                </div>
+            </div>
+
+            <!-- Modal for Quick Status Modification -->
+            <div class="modal fade" id="roomModal{{ r.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content card-luxury text-light">
+                        <div class="modal-header border-secondary border-opacity-25">
+                            <h5 class="modal-title fw-bold">Room {{ r.room_number }} - {{ r.room_type.name }}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{{ url_for('rooms.edit', room_id=r.id) }}" method="POST">
+                            <div class="modal-body">
+                                <p class="text-muted small">Floor {{ r.floor }} | Base Rate: ${{ "{:,.2f}".format(r.room_type.base_price) }} / night</p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">Update Status</label>
+                                    <select name="status" class="form-select bg-dark text-light border-secondary">
+                                        <option value="Available" {% if r.status == 'Available' %}selected{% endif %}>Available</option>
+                                        <option value="Occupied" {% if r.status == 'Occupied' %}selected{% endif %}>Occupied</option>
+                                        <option value="Reserved" {% if r.status == 'Reserved' %}selected{% endif %}>Reserved</option>
+                                        <option value="Cleaning" {% if r.status == 'Cleaning' %}selected{% endif %}>Cleaning / Dirty</option>
+                                        <option value="Maintenance" {% if r.status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                                        <option value="Out of Order" {% if r.status == 'Out of Order' %}selected{% endif %}>Out of Order</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">Notes / Key Card Code</label>
+                                    <textarea name="notes" class="form-control bg-dark text-light border-secondary" rows="2" placeholder="Add any notes or remarks here">{{ r.notes or '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-secondary border-opacity-25">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-gold btn-sm">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

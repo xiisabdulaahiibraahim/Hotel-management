@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official Night Audit Statement - {{ audit.audit_date.strftime('%Y-%m-%d') }} | {{ hotel_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 30px 15px;
+        }
+        .statement-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        .header-title {
+            color: #d97706;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+        .table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+        }
+        @media print {
+            body { background: #ffffff; padding: 0; }
+            .statement-card { border: none; box-shadow: none; padding: 20px 0; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="statement-card">
+        <!-- Top Bar Actions -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom no-print">
+            <a href="{{ url_for('billing.night_audit') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Dib ugu laabo Night Audit
+            </a>
+            <button onclick="window.print()" class="btn btn-sm btn-warning text-dark fw-bold px-3">
+                <i class="fa-solid fa-print me-1.5"></i> Daabac Warbixinta (Print Statement)
+            </button>
+        </div>
+
+        <!-- Statement Header -->
+        <div class="row align-items-center mb-4">
+            <div class="col-sm-7">
+                <h2 class="header-title mb-1">{{ hotel_name }}</h2>
+                <div class="text-muted small">{{ hotel_address }}</div>
+                <div class="text-muted small"><i class="fa-solid fa-phone me-1"></i>{{ hotel_phone }}</div>
+            </div>
+            <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+                <span class="badge bg-dark px-3 py-1.5 fs-6 font-monospace">DAILY NIGHT AUDIT REPORT</span>
+                <div class="mt-2 fw-bold text-secondary">
+                    Taariikhda Xisaab-Xirka: <span class="text-dark">{{ audit.audit_date.strftime('%B %d, %Y') }}</span>
+                </div>
+                <div class="small text-muted">
+                    La Fuliyay: {{ audit.performed_at.strftime('%H:%M %p') }} &bull; Auditor: {{ audit.performed_by.username if audit.performed_by else 'Admin' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 KPI Summary Blocks -->
+        <div class="row g-3 mb-4 text-center">
+            <div class="col-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase fw-bold" style="font-size:0.7rem;">Occupancy</div>
+                    <div class="h3 fw-bold text-primary my-1">{{ audit.occupied_rooms_count }} / {{ audit.total_rooms_count }}</div>
+                    <div class="small fw-semibold text-muted">{{ audit.occupancy_rate }}% Hoyasho</div>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase fw-bold" style="font-size:0.7rem;">Room Charges</div>
+                    <div class="h3 fw-bold text-dark my-1 font-monospace">${{ "{:,.2f}".format(audit.room_charges_posted) }}</div>
+                    <div class="small text-muted">Qolalka la dalacay</div>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase fw-bold" style="font-size:0.7rem;">F&amp;B Restaurant</div>
+                    <div class="h3 fw-bold text-info my-1 font-monospace">${{ "{:,.2f}".format(audit.restaurant_sales) }}</div>
+                    <div class="small text-muted">Makhaayadda &amp; Delivery</div>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase fw-bold" style="font-size:0.7rem;">Gross Daily Intake</div>
+                    <div class="h3 fw-bold text-success my-1 font-monospace">${{ "{:,.2f}".format(audit.total_revenue) }}</div>
+                    <div class="small text-muted">Wadarta dakhliga maanta</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Balancing Table -->
+        <h5 class="fw-bold mb-2 text-dark">
+            <i class="fa-solid fa-scale-balanced me-2 text-warning"></i>1. Daily Revenue Breakdown (Dakhliga Guud ee Maanta)
+        </h5>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Revenue Center</th>
+                        <th>Description / Category</th>
+                        <th class="text-end">Amount ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold">Accommodation (Qolalka)</td>
+                        <td>Nightly room rate charges posted to checked-in guest folios</td>
+                        <td class="text-end fw-bold font-monospace">${{ "{:,.2f}".format(audit.room_charges_posted) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Food &amp; Beverage (F&amp;B)</td>
+                        <td>Restaurant dining, bar, room service &amp; express city delivery</td>
+                        <td class="text-end fw-bold font-monospace">${{ "{:,.2f}".format(audit.restaurant_sales) }}</td>
+                    </tr>
+                    <tr class="table-active">
+                        <td colspan="2" class="fw-bold text-uppercase">Total Daily Gross Billings (Wadarta Dakhliga Maanta)</td>
+                        <td class="text-end fw-bold font-monospace fs-5 text-dark">${{ "{:,.2f}".format(audit.total_revenue) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Payments Reconciliation -->
+        <h5 class="fw-bold mb-2 text-dark">
+            <i class="fa-solid fa-money-check-dollar me-2 text-success"></i>2. Payments Collected Reconciliation (Lacagaha La Qabtay)
+        </h5>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Payment Method</th>
+                        <th class="text-end">Total Collected ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for method, amt in payment_breakdown.items() %}
+                    <tr>
+                        <td class="fw-semibold"><i class="fa-solid fa-wallet me-2 text-secondary"></i>{{ method }}</td>
+                        <td class="text-end fw-bold font-monospace text-success">${{ "{:,.2f}".format(amt) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="2" class="text-center text-muted py-3">No payments processed on this audit day.</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-success">
+                        <td class="fw-bold text-uppercase">Total Liquid Payments Collected</td>
+                        <td class="text-end fw-bold font-monospace fs-5 text-success">${{ "{:,.2f}".format(audit.payments_collected) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        {% if audit.notes %}
+        <div class="p-3 rounded bg-light border mb-4">
+            <strong class="text-dark small d-block mb-1">Auditor Notes:</strong>
+            <p class="mb-0 text-secondary small">{{ audit.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Signatures Footer -->
+        <div class="row pt-5 mt-4 border-top">
+            <div class="col-6 text-center">
+                <div class="border-top border-dark mx-auto pt-2" style="max-width: 200px;">
+                    <div class="fw-bold small">Night Auditor / Receptionist</div>
+                    <small class="text-muted">Signature &amp; Date</small>
+                </div>
+            </div>
+            <div class="col-6 text-center">
+                <div class="border-top border-dark mx-auto pt-2" style="max-width: 200px;">
+                    <div class="fw-bold small">Finance Manager / General Manager</div>
+                    <small class="text-muted">Approval &amp; Stamp</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Billing & Invoices | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Billing & Guest Folios</h2>
+        <p class="text-muted small mb-0">Track customer invoices, payment transactions, and accounts receivable.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-light btn-sm px-3" onclick="window.print()">
+            <i class="fa-solid fa-print me-1.5"></i> Print List
+        </button>
+        <a href="{{ url_for('reports.export_excel') }}" class="btn btn-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-file-excel me-1.5"></i> Export Excel
+        </a>
+        <a href="{{ url_for('reports.export_csv') }}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fa-solid fa-file-csv me-1.5"></i> Export CSV
+        </a>
+        <a href="{{ url_for('billing.fees') }}" class="btn btn-outline-warning text-warning btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-tags me-1.5"></i> Fees & Surcharges
+        </a>
+    </div>
+</div>
+
+<!-- Financial KPI Banner -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="stat-card card-luxury">
+            <span class="text-muted small text-uppercase fw-semibold">Total Funds Collected</span>
+            <h3 class="fw-bold my-1 text-success">${{ "{:,.2f}".format(total_collected) }}</h3>
+            <small class="text-muted">Direct receipts via Cash, Cards, and Mobile Money</small>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card card-luxury">
+            <span class="text-muted small text-uppercase fw-semibold">Outstanding Balance (Receivables)</span>
+            <h3 class="fw-bold my-1 text-danger">${{ "{:,.2f}".format(total_receivable) }}</h3>
+            <small class="text-muted">Unpaid or partially settled guest folios</small>
+        </div>
+    </div>
+</div>
+
+<!-- Status Filters -->
+<div class="card-luxury p-3 mb-4">
+    <div class="btn-group btn-group-sm">
+        <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary {% if not selected_status %}active text-gold{% endif %}">All Invoices</a>
+        <a href="{{ url_for('billing.index', status='Paid') }}" class="btn btn-outline-secondary {% if selected_status == 'Paid' %}active text-gold{% endif %}">Paid</a>
+        <a href="{{ url_for('billing.index', status='Partially Paid') }}" class="btn btn-outline-secondary {% if selected_status == 'Partially Paid' %}active text-gold{% endif %}">Partially Paid</a>
+        <a href="{{ url_for('billing.index', status='Unpaid') }}" class="btn btn-outline-secondary {% if selected_status == 'Unpaid' %}active text-gold{% endif %}">Unpaid</a>
+    </div>
+</div>
+
+<!-- Invoices Table -->
+<div class="card-luxury p-4">
+    <div class="table-responsive">
+        <table class="table-luxury datatable">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Booking Ref</th>
+                    <th>Guest Name</th>
+                    <th>Issue Date</th>
+                    <th>Total</th>
+                    <th>Paid</th>
+                    <th>Balance Due</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in invoices %}
+                <tr>
+                    <td class="fw-bold text-gold">{{ inv.invoice_number }}</td>
+                    <td>{{ inv.booking.booking_reference if inv.booking else 'N/A' }}</td>
+                    <td class="fw-semibold">{{ inv.guest.full_name if inv.guest else 'Guest' }}</td>
+                    <td><small class="text-muted">{{ inv.issue_date.strftime('%b %d, %Y') }}</small></td>
+                    <td class="fw-bold">${{ "{:,.2f}".format(inv.total_amount) }}</td>
+                    <td class="text-success fw-bold">${{ "{:,.2f}".format(inv.paid_amount) }}</td>
+                    <td class="{% if inv.balance_due > 0 %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                        ${{ "{:,.2f}".format(inv.balance_due) }}
+                    </td>
+                    <td><span class="{{ inv.status_badge }}">{{ inv.status }}</span></td>
+                    <td class="text-end">
+                        <a href="{{ url_for('billing.folio', invoice_id=inv.id) }}" class="btn btn-sm btn-gold">
+                            <i class="fa-solid fa-folder-open me-1"></i> Folio
+                        </a>
+                        <a href="{{ url_for('billing.print_invoice', invoice_id=inv.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa-solid fa-print"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

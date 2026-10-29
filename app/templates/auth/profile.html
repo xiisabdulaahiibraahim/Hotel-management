@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="h3 fw-bold mb-1">My User Account</h2>
+    <p class="text-muted small mb-0">Update your system profile details and account password.</p>
+</div>
+
+<div class="card-luxury p-4" style="max-width: 650px;">
+    <form action="{{ url_for('auth.profile') }}" method="POST">
+        <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold fs-3" style="width: 64px; height: 64px; border: 2px solid var(--gold-accent);">
+                {{ current_user.full_name[:2].upper() }}
+            </div>
+            <div>
+                <h5 class="fw-bold mb-0 text-light">{{ current_user.full_name }}</h5>
+                <span class="badge bg-gold">{{ current_user.role.name if current_user.role else 'User' }}</span>
+                <span class="text-muted small ms-2">@{{ current_user.username }}</span>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Full Name</label>
+                <input type="text" name="full_name" value="{{ current_user.full_name }}" class="form-control bg-dark text-light border-secondary" required placeholder="Enter full name">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Phone Number</label>
+                <input type="text" name="phone" value="{{ current_user.phone or '' }}" class="form-control bg-dark text-light border-secondary" placeholder="Enter phone number e.g. +252 61 555 0100">
+            </div>
+            <div class="col-12">
+                <label class="form-label small text-muted">Email Address (Read-only)</label>
+                <input type="email" value="{{ current_user.email }}" class="form-control bg-dark text-muted border-secondary" disabled>
+            </div>
+
+            <div class="col-12"><hr class="border-secondary border-opacity-25 my-2"></div>
+
+            <div class="col-12">
+                <label class="form-label small text-muted">Change Password (Leave blank to keep current)</label>
+                <input type="password" name="new_password" class="form-control bg-dark text-light border-secondary" placeholder="••••••••">
+            </div>
+
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-gold px-4 py-2 fw-semibold">
+                    <i class="fa-solid fa-save me-1"></i> Update Profile
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}Restaurant Orders & Kitchen Dispatch | The Grand Horizon HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card-white {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        color: #0f172a !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .kpi-card-white:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    }
+    .kpi-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-val {
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-desc {
+        font-size: 0.76rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-gold">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('restaurant.pos') }}" class="text-gold">Restaurant POS</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Orders & Kitchen Dispatch</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1 text-white">
+            <i class="fa-solid fa-utensils text-gold me-2"></i>Restaurant Orders & Kitchen Dispatch (KOT)
+        </h2>
+        <p class="text-muted small mb-0">Track all culinary orders, dispatch to kitchen chikada, edit statuses, and print guest receipts.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-light btn-sm px-3" onclick="window.print()">
+            <i class="fa-solid fa-print me-1.5"></i> Daabac Liiska (Print Orders)
+        </button>
+        <a href="{{ url_for('restaurant.kitchen') }}" class="btn btn-outline-warning text-warning btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-fire me-1.5"></i> Kitchen KDS Display
+        </a>
+        <a href="{{ url_for('restaurant.pos') }}" class="btn btn-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-cash-register me-1.5"></i> + Qabo Dalab Cusub (Open POS)
+        </a>
+    </div>
+</div>
+
+<!-- ============================================================
+     4 KPI SUMMARY CARDS (WHITE EXECUTIVE DESIGN)
+     ============================================================ -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Total Orders -->
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-list text-primary me-1"></i> Total Orders</div>
+                    <div class="kpi-val text-primary">{{ orders|length }}</div>
+                    <div class="kpi-desc">Logged dining & room service</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Dining Ledger</span>
+                <span class="badge bg-primary bg-opacity-25 text-primary">All Time</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: In Kitchen / Cooking -->
+    {% set in_kitchen_count = orders | selectattr('status', 'equalto', 'In Kitchen') | list | length %}
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-fire text-warning me-1"></i> Chikada Kuugga (Cooking)</div>
+                    <div class="kpi-val text-warning">{{ in_kitchen_count }}</div>
+                    <div class="kpi-desc">Orders active on cooking line</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                    <i class="fa-solid fa-kitchen-set"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Culinary Brigade</span>
+                <span class="badge bg-warning bg-opacity-25 text-warning">Preparing</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Pending Dispatch -->
+    {% set pending_count = orders | selectattr('status', 'equalto', 'Pending') | list | length %}
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-clock text-danger me-1"></i> Sugaya Kuugga (Pending)</div>
+                    <div class="kpi-val text-danger">{{ pending_count }}</div>
+                    <div class="kpi-desc">Not yet sent to kitchen</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Action Needed</span>
+                <span class="badge {% if pending_count > 0 %}bg-danger bg-opacity-25 text-danger{% else %}bg-success bg-opacity-25 text-success{% endif %}">
+                    {% if pending_count > 0 %}U Dir Kuugga{% else %}Dispatched{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Total F&B Sales -->
+    {% set total_dining = namespace(sum=0.0) %}
+    {% for o in orders %}
+        {% set total_dining.sum = total_dining.sum + o.total_amount %}
+    {% endfor %}
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-coins text-success me-1"></i> F&B Revenue Total</div>
+                    <div class="kpi-val text-success">${{ "{:,.2f}".format(total_dining.sum) }}</div>
+                    <div class="kpi-desc">Gross restaurant billings</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-vault"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Revenue Flow</span>
+                <span class="badge bg-success bg-opacity-25 text-success">Verified Intake</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card-luxury p-3 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('restaurant.orders') }}" class="btn btn-outline-secondary {% if not selected_status %}active text-gold{% endif %}">All Orders</a>
+            <a href="{{ url_for('restaurant.orders', status='Pending') }}" class="btn btn-outline-secondary {% if selected_status == 'Pending' %}active text-gold{% endif %}">Pending</a>
+            <a href="{{ url_for('restaurant.orders', status='In Kitchen') }}" class="btn btn-outline-secondary {% if selected_status == 'In Kitchen' %}active text-gold{% endif %}">In Kitchen</a>
+            <a href="{{ url_for('restaurant.orders', status='Ready') }}" class="btn btn-outline-secondary {% if selected_status == 'Ready' %}active text-gold{% endif %}">Ready</a>
+            <a href="{{ url_for('restaurant.orders', status='Delivered') }}" class="btn btn-outline-secondary {% if selected_status == 'Delivered' %}active text-gold{% endif %}">Delivered</a>
+        </div>
+        <span class="text-muted small">Showing {{ orders|length }} orders</span>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card-luxury p-4 mb-4">
+    <div class="table-responsive">
+        <table class="table-luxury datatable">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Type</th>
+                    <th>Destination</th>
+                    <th>Items Ordered</th>
+                    <th>Total Amount</th>
+                    <th>Folio Status</th>
+                    <th>Kitchen Status</th>
+                    <th>Time</th>
+                    <th class="text-end" style="min-width: 220px;">Actions & Chikada</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td class="fw-bold text-gold"><code>{{ o.order_number }}</code></td>
+                    <td><span class="badge bg-secondary">{{ o.order_type }}</span></td>
+                    <td class="fw-semibold">
+                        {% if o.room %}
+                        <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4);">
+                            <i class="fa-solid fa-bed me-1"></i>Room {{ o.room.room_number }}
+                        </span>
+                        {% elif o.order_type == 'Delivery' or (o.delivery_address and not o.table_number) %}
+                            {% if 'Room' in (o.delivery_address or '') or 'Rm' in (o.delivery_address or '') or 'Suite' in (o.delivery_address or '') %}
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4);">
+                                <i class="fa-solid fa-hotel me-1"></i>{{ o.delivery_address }}
+                            </span>
+                            {% else %}
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4);">
+                                <i class="fa-solid fa-motorcycle me-1"></i>{{ o.delivery_address or 'City Delivery / Lido Area' }}
+                            </span>
+                            {% endif %}
+                            {% if o.guest_name %}
+                            <div class="small mt-0.5" style="color: #e2e8f0; font-size: 0.75rem;"><i class="fa-solid fa-user me-1 text-gold"></i>{{ o.guest_name }}</div>
+                            {% endif %}
+                        {% elif o.table_number %}
+                        <span class="badge" style="background: rgba(148, 163, 184, 0.2); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.4);">
+                            <i class="fa-solid fa-chair me-1"></i>Table {{ o.table_number }}
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3);">
+                            <i class="fa-solid fa-cash-register me-1"></i>Table Counter
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-light">
+                            {% for itm in o.items %}
+                            <strong class="text-white">{{ itm.quantity }}x</strong> <span style="color: #cbd5e1;">{{ itm.menu_item.name }}</span>{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </small>
+                    </td>
+                    <td class="fw-bold text-white fs-6 font-monospace">${{ "{:,.2f}".format(o.total_amount) }}</td>
+                    <td>
+                        {% if o.payment_status in ['Paid', 'Paid (Folio)'] or o.is_charged_to_room %}
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">
+                            <i class="fa-solid fa-circle-check me-1"></i>{{ o.payment_status or 'Paid' }}
+                        </span>
+                        <div class="small mt-0.5" style="color: #94a3b8; font-size: 0.72rem;">{{ o.payment_method or ('Folio Charged' if o.is_charged_to_room else 'Direct Cash/Card') }}</div>
+                        {% else %}
+                        <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                            <i class="fa-solid fa-clock me-1"></i>Pending Payment
+                        </span>
+                        <div class="small mt-0.5" style="color: #94a3b8; font-size: 0.72rem;">{{ o.payment_method or 'Direct Cash/Card' }}</div>
+                        {% endif %}
+                    </td>
+                    <td><span class="{{ o.status_badge }}">{{ o.status }}</span></td>
+                    <td><small style="color: #94a3b8;">{{ o.created_at.strftime('%H:%M %b %d') }}</small></td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                            <!-- Payment Collection Button if Pending -->
+                            {% if o.payment_status not in ['Paid', 'Paid (Folio)'] and not o.is_charged_to_room %}
+                            <button type="button" class="btn btn-sm btn-outline-success fw-bold px-2" data-bs-toggle="modal" data-bs-target="#payOrderModal{{ o.id }}" title="Qaado / Xaqiiji Lacagta">
+                                <i class="fa-solid fa-money-bill-wave me-1"></i> Bixi Lacagta
+                            </button>
+                            {% endif %}
+
+                            <!-- Send to Kitchen Button -->
+                            {% if o.status == 'Pending' %}
+                            <form action="{{ url_for('restaurant.send_to_kitchen', order_id=o.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold" title="U dir Jikada Kuugga">
+                                    <i class="fa-solid fa-fire me-1"></i> U Dir Jikada
+                                </button>
+                            </form>
+                            {% elif o.status == 'Ready' %}
+                            <form action="{{ url_for('restaurant.dispatch_order', order_id=o.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success fw-bold px-2.5 shadow-sm" title="U dir Qolka / Macmiilka">
+                                    <i class="fa-solid fa-paper-plane me-1"></i> U Dir Qolka
+                                </button>
+                            </form>
+                            {% elif o.status == 'Out for Delivery' %}
+                            <form action="{{ url_for('restaurant.deliver_order', order_id=o.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-2.5" title="Xaqiiji Gaarsiinta">
+                                    <i class="fa-solid fa-check-double me-1"></i> La Gaarsiiyay
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            <!-- Print KOT Ticket (Chikada) -->
+                            <a href="{{ url_for('restaurant.kot_ticket', order_id=o.id) }}" target="_blank" class="btn btn-sm btn-outline-light" title="Print Kitchen Order Ticket">
+                                <i class="fa-solid fa-receipt"></i> KOT
+                            </a>
+
+                            <!-- Edit Modal Button -->
+                            <button type="button" class="btn btn-sm btn-outline-gold" data-bs-toggle="modal" data-bs-target="#editOrderModal{{ o.id }}" title="Edit Order Details">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+
+                            <!-- Delete Modal Button -->
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteOrderModal{{ o.id }}" title="Delete Order">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODALS SAFELY PLACED OUTSIDE THE TABLE (PREVENTS FREEZE BUG)
+     ============================================================ -->
+{% for o in orders %}
+<!-- Modal: Collect Payment #{{ o.id }} -->
+<div class="modal fade" id="payOrderModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light border border-success border-opacity-50">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-cash-register text-success me-2"></i>Qaado / Xaqiiji Lacagta - Dalabka #{{ o.order_number }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('restaurant.collect_payment', order_id=o.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="p-3 rounded bg-black bg-opacity-30 border border-secondary border-opacity-25 mb-3 text-center">
+                        <div class="text-muted small">Wadarta Guud ee Lacagta (Total Amount Due):</div>
+                        <div class="h2 fw-bold text-gold my-1 font-monospace">${{ "{:,.2f}".format(o.total_amount) }}</div>
+                        <div class="small mt-2">
+                            {% if o.room %}
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4);">
+                                <i class="fa-solid fa-bed me-1"></i>Qolka: Room {{ o.room.room_number }}
+                            </span>
+                            {% elif o.delivery_address %}
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4);">
+                                <i class="fa-solid fa-location-dot me-1"></i>{{ o.delivery_address }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary">Table {{ o.table_number or 'Counter' }}</span>
+                            {% endif %}
+                            {% if o.guest_name %}
+                            <div class="text-light small mt-1"><i class="fa-solid fa-user text-gold me-1"></i>{{ o.guest_name }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Habka Lacag-Bixinta (Payment Method) *</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="EVC Plus (Hormuud)" selected>📱 EVC Plus (*712*...#)</option>
+                            <option value="Sahal (Golis)">📱 Sahal / Golis Service</option>
+                            <option value="Zaad Service (Telesom)">📱 Zaad Service</option>
+                            <option value="Direct Cash">💵 Direct Cash (Lacag Caddaan ah)</option>
+                            <option value="Credit / Debit Card">💳 Master / Visa Card</option>
+                            {% if o.room or o.booking %}
+                            <option value="Post to Room Folio">🏨 Ku Dalac Biilka Qolka (Post to Room Folio)</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="alert alert-info py-2 px-3 small border-0 bg-primary bg-opacity-10 text-info">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Markaad xaqiijiso lacagta, dalabku wuxuu noqonayaa <strong>Paid</strong>, cuntadana si degdeg ah ayaa loogu diri karaa qolka/macmiilka.
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji (Cancel)</button>
+                    <button type="submit" class="btn btn-success btn-sm px-4 fw-bold">
+                        <i class="fa-solid fa-check me-1"></i> Xaqiiji Bixinta Lacagta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit Order #{{ o.id }} -->
+<div class="modal fade" id="editOrderModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-pen-to-square text-gold me-2"></i>Bedel Dalabka #{{ o.order_number }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('restaurant.edit_order', order_id=o.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Xaaladda Dalabka (Order Status)</label>
+                        <select name="status" class="form-select" required>
+                            <option value="Pending" {% if o.status == 'Pending' %}selected{% endif %}>Pending (Sugaya Kuugga)</option>
+                            <option value="In Kitchen" {% if o.status == 'In Kitchen' %}selected{% endif %}>In Kitchen (Kuugga ayaa karinaya)</option>
+                            <option value="Ready" {% if o.status == 'Ready' %}selected{% endif %}>Ready (Diyaar ah - Food Ready)</option>
+                            <option value="Delivered" {% if o.status == 'Delivered' %}selected{% endif %}>Delivered (Loo Geeyay Martida)</option>
+                            <option value="Cancelled" {% if o.status == 'Cancelled' %}selected{% endif %}>Cancelled (La Joojiyay)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Nooca Dalabka (Order Type)</label>
+                        <select name="order_type" class="form-select">
+                            <option value="Dine-In" {% if o.order_type == 'Dine-In' %}selected{% endif %}>Dine-In (Restaurant Dining Room)</option>
+                            <option value="Room Service" {% if o.order_type == 'Room Service' %}selected{% endif %}>Room Service (Qolka Martida)</option>
+                            <option value="Takeaway" {% if o.order_type == 'Takeaway' %}selected{% endif %}>Takeaway (La Qaadanayo)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Miiska / Notes (Table / Destination)</label>
+                        <input type="text" name="table_number" value="{{ o.table_number or '' }}" class="form-control" placeholder="e.g. Table 4, Terrace 1">
+                    </div>
+                    <div class="p-3 rounded bg-black bg-opacity-25 border border-secondary border-opacity-25">
+                        <div class="small text-muted mb-1">Cuntooyinka Dalabka:</div>
+                        <ul class="mb-0 ps-3 small text-light">
+                            {% for itm in o.items %}
+                            <li>{{ itm.quantity }}x {{ itm.menu_item.name }} - ${{ "{:,.2f}".format(itm.subtotal) }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Kaydi Isbedelka (Save)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Delete Order #{{ o.id }} -->
+<div class="modal fade" id="deleteOrderModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light border border-danger border-opacity-50">
+            <div class="modal-header border-danger border-opacity-25">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Tirtir Dalabka #{{ o.order_number }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('restaurant.delete_order', order_id=o.id) }}" method="POST">
+                <div class="modal-body">
+                    <p class="mb-2">Ma hubtaa inaad tirtirto dalabkan:</p>
+                    <div class="p-3 rounded bg-danger bg-opacity-10 border border-danger border-opacity-25 mb-3">
+                        <div><strong>Order #:</strong> {{ o.order_number }}</div>
+                        <div><strong>Total:</strong> ${{ "{:,.2f}".format(o.total_amount) }}</div>
+                        <div><strong>Destination:</strong> {{ 'Room ' ~ o.room.room_number if o.room else 'Table ' ~ (o.table_number or 'Counter') }}</div>
+                    </div>
+                    <small class="text-danger">Digniin: Talaabadani ma noqon karto mid dib loo soo celiyo.</small>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji (Cancel)</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold">Haa, Tirtir Dalabka</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

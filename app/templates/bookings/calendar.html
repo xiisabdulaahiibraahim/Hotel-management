@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Reservation Calendar | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Reservation Calendar</h2>
+        <p class="text-muted small mb-0">Visual monthly and weekly schedule of all confirmed and in-house stays.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="badge bg-success">Confirmed</span>
+        <span class="badge bg-primary">Checked-in</span>
+        <span class="badge bg-secondary">Checked-out</span>
+        <a href="{{ url_for('bookings.index') }}" class="btn btn-outline-secondary btn-sm ms-2">
+            <i class="fa-solid fa-list me-1"></i> Table View
+        </a>
+    </div>
+</div>
+
+<div class="card-luxury p-4">
+    <div id="bookingCalendar"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('bookingCalendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            themeSystem: 'bootstrap5',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listMonth'
+            },
+            events: '/api/calendar/events',
+            eventClick: function(info) {
+                if (info.event.url) {
+                    window.location.href = info.event.url;
+                    info.jsEvent.preventDefault();
+                }
+            }
+        });
+        calendar.render();
+    });
+</script>
+{% endblock %}

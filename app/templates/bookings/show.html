@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Booking {{ booking.booking_reference }} | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('bookings.index') }}" class="text-gold">Bookings</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">{{ booking.booking_reference }}</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">Reservation Details: <span class="text-gold">{{ booking.booking_reference }}</span></h2>
+        <span class="{{ booking.status_badge }}">{{ booking.status }}</span>
+        <span class="badge bg-dark border border-secondary ms-2">{{ booking.booking_source }}</span>
+    </div>
+    <div class="d-flex gap-2">
+        {% if booking.status in ['Confirmed', 'Pending'] %}
+        <a href="{{ url_for('checkin.checkin_guest', booking_id=booking.id) }}" class="btn btn-gold btn-sm">
+            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Front Desk Check-in
+        </a>
+        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal">
+            <i class="fa-solid fa-ban me-1"></i> Cancel Booking
+        </button>
+        {% elif booking.status == 'Checked-in' %}
+        <a href="{{ url_for('checkin.checkout_guest', booking_id=booking.id) }}" class="btn btn-warning text-dark btn-sm">
+            <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Check-out Guest
+        </a>
+        {% endif %}
+        {% if invoice %}
+        <a href="{{ url_for('billing.folio', invoice_id=invoice.id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Guest Folio
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Guest & Stay Information -->
+    <div class="col-lg-6">
+        <div class="card-luxury p-4 h-100">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <i class="fa-regular fa-user text-gold me-2"></i>Guest Information
+            </h5>
+            <div class="mb-3">
+                <strong class="fs-5 text-light">{{ booking.guest.full_name if booking.guest else 'Guest' }}</strong>
+                {% if booking.guest and booking.guest.vip_tier %}
+                <span class="badge bg-warning text-dark ms-2">{{ booking.guest.vip_tier }}</span>
+                {% endif %}
+            </div>
+            <ul class="list-unstyled text-muted small mb-0">
+                <li class="mb-2"><i class="fa-solid fa-phone me-2 text-gold"></i>{{ booking.guest.phone if booking.guest else 'N/A' }}</li>
+                <li class="mb-2"><i class="fa-solid fa-envelope me-2 text-gold"></i>{{ booking.guest.email if booking.guest else 'N/A' }}</li>
+                <li class="mb-2"><i class="fa-solid fa-id-card me-2 text-gold"></i>{{ booking.guest.id_type }}: {{ booking.guest.id_number if booking.guest else 'N/A' }}</li>
+                <li><i class="fa-solid fa-flag me-2 text-gold"></i>{{ booking.guest.nationality if booking.guest else 'N/A' }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Stay Details -->
+    <div class="col-lg-6">
+        <div class="card-luxury p-4 h-100">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <i class="fa-solid fa-calendar-days text-gold me-2"></i>Stay Schedule
+            </h5>
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <span class="text-muted small">Check-in:</span>
+                    <div class="fw-bold fs-6 text-light">{{ booking.check_in_date.strftime('%A, %b %d, %Y') }}</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small">Check-out:</span>
+                    <div class="fw-bold fs-6 text-light">{{ booking.check_out_date.strftime('%A, %b %d, %Y') }}</div>
+                </div>
+            </div>
+            <div class="d-flex gap-4 text-muted small">
+                <div><i class="fa-solid fa-moon text-gold me-1"></i>Duration: <strong class="text-light">{{ booking.nights_count }} Nights</strong></div>
+                <div><i class="fa-solid fa-user-group text-gold me-1"></i>Guests: <strong class="text-light">{{ booking.adults }} Adults, {{ booking.children }} Children</strong></div>
+            </div>
+            {% if booking.special_requests %}
+            <div class="mt-3 p-2 bg-dark rounded border border-secondary border-opacity-25 small">
+                <span class="text-gold fw-semibold">Special Requests:</span> {{ booking.special_requests }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reserved Rooms -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <i class="fa-solid fa-bed text-gold me-2"></i>Reserved Rooms
+            </h5>
+            <div class="table-responsive">
+                <table class="table-luxury">
+                    <thead>
+                        <tr>
+                            <th>Room #</th>
+                            <th>Room Type</th>
+                            <th>Rate / Night</th>
+                            <th>Nights</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for br in booking.booking_rooms %}
+                        <tr>
+                            <td class="fw-bold text-gold fs-5">Room {{ br.room.room_number }}</td>
+                            <td>{{ br.room.room_type.name }} (Floor {{ br.room.floor }})</td>
+                            <td>${{ "{:,.2f}".format(br.price_per_night) }}</td>
+                            <td>{{ br.nights }}</td>
+                            <td class="text-end fw-bold">${{ "{:,.2f}".format(br.subtotal) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end text-muted">Subtotal:</td>
+                            <td class="text-end fw-semibold">${{ "{:,.2f}".format(booking.subtotal_amount) }}</td>
+                        </tr>
+                        {% if booking.discount_amount > 0 %}
+                        <tr>
+                            <td colspan="4" class="text-end text-success">Discount:</td>
+                            <td class="text-end text-success fw-semibold">-${{ "{:,.2f}".format(booking.discount_amount) }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td colspan="4" class="text-end text-muted">Taxes & Fees (5%):</td>
+                            <td class="text-end fw-semibold">${{ "{:,.2f}".format(booking.tax_amount) }}</td>
+                        </tr>
+                        <tr class="fs-5 border-top border-secondary">
+                            <td colspan="4" class="text-end fw-bold text-gold">Total Amount:</td>
+                            <td class="text-end fw-bold text-gold">${{ "{:,.2f}".format(booking.total_amount) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end text-muted">Amount Paid:</td>
+                            <td class="text-end text-success fw-bold">${{ "{:,.2f}".format(booking.paid_amount) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end text-muted">Balance Due:</td>
+                            <td class="text-end text-danger fw-bold">${{ "{:,.2f}".format(booking.balance_due) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-danger">Cancel Booking</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('bookings.cancel', booking_id=booking.id) }}" method="POST">
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel reservation <strong>{{ booking.booking_reference }}</strong>? The reserved room(s) will immediately be returned to Available status.</p>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Keep Booking</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Confirm Cancellation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

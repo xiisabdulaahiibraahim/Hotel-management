@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Staff & Human Resources | The Grand Horizon HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card-white {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        color: #0f172a !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .kpi-card-white:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    }
+    .kpi-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-val {
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-desc {
+        font-size: 0.76rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-gold">Home</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Staff & Human Resources</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1 text-white">
+            <i class="fa-solid fa-users-gear text-gold me-2"></i>Staff & Human Resources Management
+        </h2>
+        <p class="text-muted small mb-0">Employee directory, department rosters, attendance tracking, and leave approvals.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-light btn-sm px-3" onclick="window.print()">
+            <i class="fa-solid fa-print me-1.5"></i> Print Roster
+        </button>
+        <a href="{{ url_for('reports.export_csv') }}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fa-solid fa-file-csv me-1.5"></i> Export CSV
+        </a>
+        <button class="btn btn-gold btn-sm px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+            <i class="fa-solid fa-user-plus me-1.5"></i> Register Employee
+        </button>
+        <button class="btn btn-outline-light btn-sm px-3" data-bs-toggle="modal" data-bs-target="#attendanceModal">
+            <i class="fa-solid fa-clipboard-user me-1.5"></i> Log Attendance
+        </button>
+    </div>
+</div>
+
+<!-- ============================================================
+     4 KPI SUMMARY CARDS (WHITE EXECUTIVE DESIGN)
+     ============================================================ -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Total Employees -->
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-id-card-clip text-primary me-1"></i> Active Staff</div>
+                    <div class="kpi-val text-primary">{{ employees|length }}</div>
+                    <div class="kpi-desc">Total registered employees</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Workforce Roster</span>
+                <span class="badge bg-primary bg-opacity-25 text-primary">Active Roster</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Total Payroll Obligation -->
+    {% set payroll = namespace(sum=0.0) %}
+    {% for emp in employees %}
+        {% set payroll.sum = payroll.sum + emp.basic_salary %}
+    {% endfor %}
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-money-check-dollar text-success me-1"></i> Monthly Payroll</div>
+                    <div class="kpi-val text-success">${{ "{:,.2f}".format(payroll.sum) }}</div>
+                    <div class="kpi-desc">Base salary commitment</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Disbursement Cycle</span>
+                <span class="badge bg-success bg-opacity-25 text-success">Monthly</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Pending Leave Requests -->
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-calendar-minus text-warning me-1"></i> Pending Leaves</div>
+                    <div class="kpi-val text-warning">{{ pending_leaves|length }}</div>
+                    <div class="kpi-desc">Requests awaiting HR sign-off</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>HR Action Needed</span>
+                <span class="badge {% if pending_leaves|length > 0 %}bg-warning bg-opacity-25 text-warning{% else %}bg-secondary{% endif %}">
+                    {% if pending_leaves|length > 0 %}Review Pending{% else %}Clear{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Departments Count -->
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-sitemap text-info me-1"></i> Departments</div>
+                    <div class="kpi-val text-info">{{ departments|length }}</div>
+                    <div class="kpi-desc">Operational divisions</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4;">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Shift Coverage</span>
+                <span class="badge bg-info bg-opacity-25 text-info">24/7 Operations</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employees Directory -->
+<div class="card-luxury p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+        <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-users-gear text-gold me-2"></i>Employee Registry</h5>
+        <span class="badge bg-secondary">{{ employees|length }} Employees</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury datatable">
+            <thead>
+                <tr>
+                    <th>Staff Code</th>
+                    <th>Full Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Shift</th>
+                    <th>Monthly Salary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in employees %}
+                <tr>
+                    <td class="fw-bold text-gold"><code>{{ emp.employee_code }}</code></td>
+                    <td class="fw-semibold text-white">{{ emp.full_name }}</td>
+                    <td><span class="badge bg-dark border border-secondary">{{ emp.department }}</span></td>
+                    <td class="text-light">{{ emp.designation }}</td>
+                    <td><small class="text-muted">{{ emp.shift.name if emp.shift else 'Standard Day' }}</small></td>
+                    <td class="fw-bold text-success">${{ "{:,.2f}".format(emp.basic_salary) }}</td>
+                    <td><span class="badge bg-success">{{ emp.status }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pending Leave Requests -->
+<div class="card-luxury p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+        <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-calendar-minus text-gold me-2"></i>Pending Leave Requests</h5>
+        <span class="badge bg-warning text-dark fw-bold">{{ pending_leaves|length }} Pending</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury">
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Leave Type</th>
+                    <th>Duration Period</th>
+                    <th>Reason / Details</th>
+                    <th class="text-end">Management Decision</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lr in pending_leaves %}
+                <tr>
+                    <td class="fw-bold text-white">{{ lr.employee.full_name }}</td>
+                    <td><span class="badge bg-info text-dark fw-semibold">{{ lr.leave_type }}</span></td>
+                    <td><small class="text-muted">{{ lr.start_date.strftime('%b %d, %Y') }} to {{ lr.end_date.strftime('%b %d, %Y') }}</small></td>
+                    <td class="small text-light">{{ lr.reason }}</td>
+                    <td class="text-end">
+                        <form action="{{ url_for('staff.review_leave', leave_id=lr.id) }}" method="POST" class="d-inline-flex gap-2">
+                            <button type="submit" name="status" value="Approved" class="btn btn-sm btn-success px-3 fw-bold">
+                                <i class="fa-solid fa-check me-1"></i> Approve
+                            </button>
+                            <button type="submit" name="status" value="Rejected" class="btn btn-sm btn-outline-danger px-3">
+                                <i class="fa-solid fa-xmark me-1"></i> Reject
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fa-solid fa-calendar-check text-success fs-3 d-block mb-2"></i>
+                        No pending staff leave requests. All applications processed!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Add Employee -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-user-plus text-gold me-2"></i>Register New Employee
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('staff.add') }}" method="POST">
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">First Name</label>
+                            <input type="text" name="first_name" class="form-control" required placeholder="Enter first name">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" required placeholder="Enter last name">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Department</label>
+                            <select name="department" class="form-select" required>
+                                {% for d in departments %}
+                                <option value="{{ d }}">{{ d }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Designation</label>
+                            <input type="text" name="designation" class="form-control" placeholder="e.g. Concierge, Executive Chef" required>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Phone Number</label>
+                            <input type="text" name="phone" class="form-control" required placeholder="+252 61 555 0100">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Email Address</label>
+                            <input type="email" name="email" class="form-control" required placeholder="name@grandhorizon.so">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Work Shift</label>
+                            <select name="shift_id" class="form-select">
+                                {% for s in shifts %}
+                                <option value="{{ s.id }}">{{ s.name }} ({{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Monthly Basic Salary ($)</label>
+                            <input type="number" step="0.01" name="basic_salary" class="form-control" placeholder="0.00" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Save Employee Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Log Attendance -->
+<div class="modal fade" id="attendanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-clipboard-user text-gold me-2"></i>Log Staff Attendance
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('staff.log_attendance') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Select Employee</label>
+                        <select name="employee_id" class="form-select" required>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.full_name }} — {{ emp.designation }} ({{ emp.department }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Attendance Status</label>
+                        <select name="status" class="form-select" required>
+                            <option value="Present">Present (On-Time)</option>
+                            <option value="Late">Late Arrival</option>
+                            <option value="Absent">Absent</option>
+                            <option value="On Leave">Authorized Leave</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Shift Notes / Observations</label>
+                        <input type="text" name="notes" class="form-control" placeholder="e.g. Swapped shift with team member or 15 mins delay">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Log Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

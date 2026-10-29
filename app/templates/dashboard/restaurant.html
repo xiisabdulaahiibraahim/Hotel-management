@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Dining, Kitchen & Delivery Dispatch Hub | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Top Role Banner -->
+    <div class="card card-luxury mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-dark" style="width: 52px; height: 52px; background: #10b981; font-size: 1.5rem;">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="fw-bold mb-0 text-white">Culinary, POS &amp; Express Delivery Terminal</h4>
+                            <span class="badge bg-success text-dark fw-bold">Food &amp; Beverage</span>
+                        </div>
+                        <p class="text-white-50 mb-0 small">Welcome back, <strong>{{ current_user.full_name or current_user.username }}</strong>. Real-time dining tickets, kitchen preparation, and courier delivery dispatch.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('restaurant.pos') }}" class="btn btn-gold btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-cash-register me-1"></i> POS Register
+                    </a>
+                    <a href="{{ url_for('restaurant.kitchen') }}" class="btn btn-outline-light btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-kitchen-set me-1"></i> Kitchen KDS
+                    </a>
+                    <a href="{{ url_for('delivery.index') }}" class="btn btn-outline-success btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-truck-fast me-1"></i> Delivery Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 Restaurant & Delivery KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Total Orders Today</div>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">{{ restaurant_today_count }}</h3>
+                    </div>
+                    <span class="badge bg-secondary bg-opacity-10 text-dark p-2 rounded"><i class="fa-solid fa-receipt fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Dine-in, Room Service, Delivery</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-warning border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Kitchen Queue</div>
+                        <h3 class="fw-bold text-warning mt-1 mb-0">{{ kitchen_queue_count }}</h3>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning p-2 rounded"><i class="fa-solid fa-fire-burner fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Currently being prepared</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-primary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">In Transit / Couriers</div>
+                        <h3 class="fw-bold text-primary mt-1 mb-0">{{ in_transit_count }}</h3>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded"><i class="fa-solid fa-person-biking fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Out on road with riders</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-success border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Delivered Today</div>
+                        <h3 class="fw-bold text-success mt-1 mb-0">{{ delivered_count }}</h3>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded"><i class="fa-solid fa-circle-check fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Completed deliveries</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-success border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Today's Food Sales</div>
+                        <h3 class="fw-bold text-success mt-1 mb-0">${{ "{:,.2f}".format(restaurant_today_sales) }}</h3>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded"><i class="fa-solid fa-cash-register fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-coins text-gold me-1"></i> F&amp;B Total Collected</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Orders Table -->
+    <div class="card bg-white border border-secondary border-opacity-25 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-bell-concierge text-gold me-2"></i>Live Dining &amp; Delivery Orders</h6>
+            <a href="{{ url_for('restaurant.orders') }}" class="btn btn-sm btn-outline-secondary">View All Orders</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small text-uppercase">
+                        <th>Photo</th>
+                        <th>Order Ref</th>
+                        <th>Type</th>
+                        <th>Destination / Room</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th class="text-end">Update Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in active_orders %}
+                    <tr>
+                        <td>
+                            {% if o.delivery_image %}
+                            <img src="{{ o.delivery_image }}" alt="Order" class="rounded border" style="width:38px; height:32px; object-fit:cover;">
+                            {% else %}
+                            <div class="rounded bg-light border d-flex align-items-center justify-content-center text-muted" style="width:38px; height:32px;">
+                                <i class="fa-solid fa-utensils small text-gold"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-dark font-monospace text-gold px-2 py-1">{{ o.order_number }}</span>
+                            <div class="text-muted" style="font-size:0.7rem;">{{ o.created_at.strftime('%H:%M') }}</div>
+                        </td>
+                        <td>
+                            <span class="badge {% if o.order_type == 'Delivery' %}bg-primary{% elif o.order_type == 'Room Service' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                {{ o.order_type }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">
+                                {% if o.room %}
+                                In-House: Room {{ o.room.room_number }}
+                                {% elif o.table_number %}
+                                Table {{ o.table_number }}
+                                {% else %}
+                                {{ o.delivery_address or 'Front Desk' }}
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ o.customer_name }}</small>
+                        </td>
+                        <td>
+                            <div class="small">
+                                {% for item in o.items %}
+                                <div>{{ item.quantity }}x {{ item.menu_item.name if item.menu_item else 'Item' }}</div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-bold text-success font-monospace">${{ "{:,.2f}".format(o.total_amount) }}</span>
+                        </td>
+                        <td>
+                            <span class="{{ o.status_badge }} px-2 py-1">{{ o.status }}</span>
+                        </td>
+                        <td class="text-end">
+                            <form action="{{ url_for('delivery.update_status', order_id=o.id) if o.order_type == 'Delivery' else url_for('restaurant.update_order_status', order_id=o.id) }}" method="POST" class="d-inline">
+                                <div class="btn-group btn-group-sm">
+                                    {% if o.status == 'Pending' %}
+                                    <button type="submit" name="status" value="In Kitchen" class="btn btn-warning text-dark fw-bold">
+                                        <i class="fa-solid fa-fire me-1"></i> Start Cooking
+                                    </button>
+                                    {% elif o.status == 'In Kitchen' %}
+                                    <button type="submit" name="status" value="Ready" class="btn btn-info text-dark fw-bold">
+                                        <i class="fa-solid fa-check me-1"></i> Ready
+                                    </button>
+                                    {% elif o.status == 'Ready' and o.order_type == 'Delivery' %}
+                                    <button type="submit" name="status" value="Out for Delivery" class="btn btn-primary fw-bold">
+                                        <i class="fa-solid fa-motorcycle me-1"></i> Dispatch Rider
+                                    </button>
+                                    {% elif o.status in ['Ready', 'Out for Delivery'] %}
+                                    <button type="submit" name="status" value="Delivered" class="btn btn-success fw-bold">
+                                        <i class="fa-solid fa-check-double me-1"></i> Delivered
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">No active pending orders in the kitchen. All tickets cleared!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

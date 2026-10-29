@@ -1,0 +1,837 @@
+/* ========================================================
+   THE GRAND HORIZON LUXURY HOTEL MANAGEMENT SYSTEM
+   Custom Luxury Design System (Navy + Gold + Glassmorphism)
+   ======================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --font-heading: 'Cinzel', serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+
+    /* Luxury Color Tokens */
+    --gold-primary: #d97706;
+    --gold-hover: #b45309;
+    --gold-light: #fef3c7;
+    --gold-accent: #f59e0b;
+    --gold-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%);
+    --gold-glow: 0 4px 20px rgba(217, 119, 6, 0.25);
+
+    --navy-950: #0a0f1d;
+    --navy-900: #0f172a;
+    --navy-800: #1e293b;
+    --navy-700: #334155;
+    --navy-600: #475569;
+
+    --bg-dark: #f8fafc;
+    --card-dark: #ffffff;
+    --card-border-dark: #cbd5e1;
+    --text-primary-dark: #0f172a;
+    --text-muted-dark: #64748b;
+
+    --bg-light: #f8fafc;
+    --card-light: #ffffff;
+    --card-border-light: #cbd5e1;
+    --text-primary-light: #0f172a;
+    --text-muted-light: #64748b;
+
+    /* ⬇ Reduced sidebar & topbar sizes */
+    --sidebar-width: 220px;
+    --sidebar-collapsed-width: 64px;
+    --topbar-height: 56px;
+    --transition-speed: 0.3s;
+    --radius-lg: 14px;
+    --radius-md: 8px;
+    --radius-sm: 5px;
+}
+
+/* Base resets & typography */
+* { box-sizing: border-box; }
+
+html { font-size: 14px; }   /* ← master font scale down */
+
+body {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f8fafc;
+    color: #0f172a;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+body.light-mode {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+/* Headings — dark high contrast */
+h1, h2, h3, h4, h5, h6, .brand-font {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+}
+
+
+.serif-gold {
+    font-family: var(--font-heading);
+    color: var(--gold-accent);
+    letter-spacing: 0.04em;
+    font-size: 0.95rem !important;
+}
+
+/* Gold Gradient Text & Elements */
+.text-gold { color: var(--gold-accent) !important; }
+
+.text-gradient-gold {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-gold {
+    background: var(--gold-gradient) !important;
+    color: #ffffff !important;
+}
+
+/* Buttons */
+.btn-gold {
+    background: var(--gold-gradient);
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 3px 10px rgba(217, 119, 6, 0.2);
+    transition: all 0.2s ease;
+}
+.btn-gold:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(217, 119, 6, 0.35);
+    color: #ffffff;
+}
+
+.btn-outline-gold {
+    border: 1px solid var(--gold-accent);
+    color: var(--gold-accent);
+    background: transparent;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+.btn-outline-gold:hover {
+    background: var(--gold-gradient);
+    color: #ffffff;
+    border-color: transparent;
+}
+
+/* Glassmorphism & Cards */
+.card-luxury {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+    color: #0f172a !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-luxury:hover {
+    border-color: #94a3b8 !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+/* Stat Cards */
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    padding: 1.2rem;
+    border-radius: var(--radius-lg);
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    color: #0f172a !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+    border-color: #94a3b8 !important;
+}
+
+.stat-card .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+/* ============================================================
+   APP LAYOUT: Sidebar + Topbar + Content
+   ============================================================ */
+.app-wrapper { display: flex; min-height: 100vh; }
+
+/* ---------- Sidebar ---------- */
+.app-sidebar {
+    width: var(--sidebar-width);
+    background: #0b1120;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    transition: width var(--transition-speed);
+    overflow-y: auto;
+}
+body.light-mode .app-sidebar {
+    background: #0f172a;
+    border-right: 1px solid #e2e8f0;
+}
+
+.app-sidebar .sidebar-brand {
+    height: var(--topbar-height);
+    min-height: var(--topbar-height);
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+/* Brand logo & text */
+.sidebar-brand .hotel-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gold-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.sidebar-brand .hotel-icon i { font-size: 0.85rem; color: #fff; }
+.sidebar-brand .brand-text-primary {
+    font-family: var(--font-heading);
+    color: var(--gold-accent);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+}
+.sidebar-brand .brand-text-secondary {
+    color: #64748b;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+/* ---------- Sidebar Nav ---------- */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.6rem 0.6rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.sidebar-nav .nav-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #475569;
+    padding: 0.6rem 0.6rem 0.2rem;
+    margin-top: 2px;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.52rem 0.7rem;
+    color: #8899b0;
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin-bottom: 1px;
+    white-space: nowrap;
+}
+.sidebar-nav .nav-link i {
+    font-size: 0.88rem;
+    width: 18px;
+    text-align: center;
+    color: #56647a;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+}
+.sidebar-nav .nav-link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+.sidebar-nav .nav-link:hover i { color: var(--gold-accent); }
+.sidebar-nav .nav-link.active {
+    color: #ffffff;
+    background: var(--gold-gradient);
+    box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);
+}
+.sidebar-nav .nav-link.active i { color: #ffffff; }
+
+/* ---------- Main Content Area ---------- */
+.app-main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left var(--transition-speed);
+}
+
+.app-topbar {
+    height: var(--topbar-height);
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    color: #0f172a !important;
+}
+
+.app-content {
+    flex: 1;
+    padding: 1.4rem 1.6rem;
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+/* ============================================================
+   STATUS BOARD GRID
+   ============================================================ */
+.room-grid-card {
+    border-radius: var(--radius-md);
+    padding: 0.85rem 0.75rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    font-size: 0.8rem;
+    color: #0f172a;
+}
+.room-grid-card:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+    border-color: #94a3b8;
+}
+.room-available {
+    background: #f0fdf4 !important;
+    border-color: #86efac !important;
+}
+.room-occupied {
+    background: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+}
+.room-cleaning {
+    background: #fffbeb !important;
+    border-color: #fde68a !important;
+}
+.room-reserved {
+    background: #eff6ff !important;
+    border-color: #93c5fd !important;
+}
+.room-maintenance {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* ============================================================
+   TABLES (High Contrast White Background with Soft Dark Lines)
+   ============================================================ */
+.table-luxury {
+    width: 100%;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.82rem;
+}
+
+.table-luxury th {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 0.85rem;
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+.table-luxury td {
+    padding: 0.75rem 0.85rem;
+    vertical-align: middle;
+    color: #0f172a !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #ffffff;
+}
+.table-luxury tbody tr:hover td {
+    background: #f8fafc !important;
+}
+
+/* ============================================================
+   POS (Menu Items with White Background and Soft Lines)
+   ============================================================ */
+.pos-menu-card {
+    cursor: pointer;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    border-radius: var(--radius-md);
+    padding: 0.85rem;
+    transition: all 0.2s ease;
+    font-size: 0.82rem;
+    color: #0f172a !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+.pos-menu-card:hover {
+    border-color: var(--gold-accent) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.18);
+}
+
+
+/* ============================================================
+   FORMS — GLOBAL INPUT STYLES
+   All inputs white background, black text, gold focus ring
+   ============================================================ */
+
+/* --- Core input elements --- */
+.form-control,
+.form-select,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+    background-color: #ffffff !important;
+    color: #1a1a2e !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: var(--radius-md) !important;
+    font-family: var(--font-sans) !important;
+    font-size: 0.83rem !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* --- Placeholder text (gray, clearly readable) --- */
+.form-control::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: #9ca3af !important;
+    font-style: normal !important;
+    opacity: 1 !important;
+}
+
+/* --- Focus state: gold glow ring --- */
+.form-control:focus,
+.form-select:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: var(--gold-accent) !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18) !important;
+    outline: none !important;
+}
+
+/* --- Input group addons (lock, user icons) --- */
+.input-group-text {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    border-color: #cbd5e1 !important;
+    font-size: 0.83rem !important;
+}
+
+/* --- Textarea height control --- */
+textarea.form-control {
+    min-height: 90px;
+    resize: vertical;
+}
+
+/* --- Select arrow colour fix --- */
+.form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+}
+
+/* --- Disabled / readonly inputs --- */
+.form-control:disabled,
+.form-control[readonly],
+input:disabled,
+input[readonly] {
+    background-color: #f8fafc !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed;
+}
+
+/* --- Form labels (High-contrast bright labels in dark mode, clear dark labels in light mode) --- */
+.form-label,
+label,
+.form-label.text-muted,
+label.text-muted,
+.form-label.small,
+label.small {
+    color: #f8fafc !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.35rem !important;
+    letter-spacing: 0.01em;
+    display: inline-block;
+}
+
+/* --- Light mode: labels dark --- */
+body.light-mode .form-label,
+body.light-mode label,
+body.light-mode .form-label.text-muted,
+body.light-mode label.text-muted {
+    color: #0f172a !important;
+}
+
+/* ============================================================
+   UNIVERSAL FORM INPUT SYSTEM:
+   Pure white background + sharp black/dark text + visible placeholders
+   Applies to Dashboard, Portal, Website, and Modals
+   ============================================================ */
+.form-control,
+.form-select,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select,
+.form-control.bg-dark,
+.form-select.bg-dark,
+input.bg-dark,
+select.bg-dark,
+textarea.bg-dark,
+.form-control.text-light,
+input.text-light,
+select.text-light,
+textarea.text-light {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    font-size: 0.84rem !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+}
+
+/* Placeholders inside inputs (visible, readable) */
+.form-control::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: #64748b !important;
+    font-weight: 400 !important;
+    opacity: 1 !important;
+}
+
+/* Input focus state */
+.form-control:focus,
+.form-select:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #d97706 !important;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.22) !important;
+    outline: none !important;
+}
+
+/* Select options inside dropdown */
+.form-select option,
+select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 0.84rem !important;
+}
+
+/* Input group addon text */
+.input-group-text {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+    font-size: 0.84rem !important;
+}
+
+/* Readonly or disabled inputs */
+.form-control:disabled,
+.form-control[readonly],
+input:disabled,
+input[readonly] {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* --- Checkbox & Radio --- */
+.form-check-input {
+    background-color: #ffffff !important;
+    border-color: #94a3b8 !important;
+}
+.form-check-input:checked {
+    background-color: var(--gold-accent) !important;
+    border-color: var(--gold-accent) !important;
+}
+.form-check-label {
+    color: #e2e8f0 !important;
+    font-size: 0.82rem;
+}
+
+/* --- Small form controls --- */
+.form-control-sm,
+.form-select-sm,
+.input-group-sm .form-control {
+    font-size: 0.8rem !important;
+    padding: 0.35rem 0.65rem !important;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+    .app-sidebar { transform: translateX(-100%); }
+    .app-sidebar.show { transform: translateX(0); }
+    .app-main { margin-left: 0; }
+}
+
+/* ============================================================
+   PRINT (Invoices)
+   ============================================================ */
+@media print {
+    body { background: #ffffff !important; color: #000000 !important; }
+    .app-sidebar, .app-topbar, .no-print, .btn, .breadcrumb { display: none !important; }
+    .app-main { margin: 0 !important; padding: 0 !important; }
+    .card-luxury { border: none !important; box-shadow: none !important; }
+}
+
+/* ============================================================
+   HIGH-CONTRAST CATEGORY BADGES & TABLE VISIBILITY
+   ============================================================ */
+.badge-cat-transport {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+    border: 1px solid #3b82f6 !important;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+.badge-cat-dining {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+    border: 1px solid #f59e0b !important;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+.badge-cat-spa {
+    background: rgba(168, 85, 247, 0.2) !important;
+    color: #c084fc !important;
+    border: 1px solid #a855f7 !important;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+.badge-cat-housekeeping {
+    background: rgba(20, 184, 166, 0.2) !important;
+    color: #2dd4bf !important;
+    border: 1px solid #14b8a6 !important;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+.badge-cat-fines {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+    border: 1px solid #ef4444 !important;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+.badge-cat-general {
+    background: rgba(217, 119, 6, 0.2) !important;
+    color: #fcd34d !important;
+    border: 1px solid #d97706 !important;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+/* ============================================================
+   EXECUTIVE WHITE INTERIOR DESIGN (Black Fonts + Soft Dark Card Lines)
+   ============================================================ */
+
+/* High contrast table cells */
+.table-luxury td {
+    color: #0f172a !important;
+    font-size: 0.84rem;
+    background-color: #ffffff !important;
+}
+.table-luxury td small,
+.table-luxury td .text-muted {
+    color: #64748b !important;
+}
+.table-luxury th {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+
+/* Headings & Text within Dashboard & Interior Pages */
+.app-content h1,
+.app-content h2,
+.app-content h3,
+.app-content h4,
+.app-content h5,
+.app-content h6,
+.app-content .page-title,
+.app-content .text-white,
+.app-content .text-light {
+    color: #0f172a !important;
+}
+.app-content .text-muted {
+    color: #64748b !important;
+}
+
+/* Chart Cards (White Background with Soft Dark Outline) */
+.chart-box,
+.report-chart-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05) !important;
+    padding: 1.25rem 1.4rem;
+    height: 100%;
+}
+.chart-box h6,
+.report-chart-card h6 {
+    color: #0f172a !important;
+    font-weight: 700;
+}
+.chart-box h6 span,
+.report-chart-card h6 span {
+    color: #0f172a !important;
+}
+
+/* Modals (White Luxury with Crisp Dark Text) */
+.modal-content.card-luxury {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2) !important;
+}
+.modal-content .modal-header,
+.modal-content .modal-footer {
+    border-color: #e2e8f0 !important;
+    background: #ffffff !important;
+}
+.modal-content .modal-title {
+    color: #0f172a !important;
+}
+.modal-content .btn-close-white {
+    filter: invert(1) grayscale(100%) !important;
+}
+.modal-content p,
+.modal-content label {
+    color: #0f172a !important;
+}
+
+/* Nav tabs in white pages */
+.nav-tabs .nav-link {
+    color: #64748b;
+    border-color: transparent;
+}
+.nav-tabs .nav-link.active {
+    color: #0f172a !important;
+    background-color: #ffffff;
+    border-color: #cbd5e1 #cbd5e1 #ffffff;
+    font-weight: 700;
+}
+
+/* ============================================================
+   UNIVERSAL CARD SOFT DARK LINE BORDERS & EXECUTIVE LINKS
+   ============================================================ */
+.card,
+.card-luxury,
+.stat-card,
+.kpi-card-white,
+.master-kpi-card,
+.chart-box,
+.report-chart-card,
+.pos-menu-card,
+.room-grid-card {
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.card:hover,
+.card-luxury:hover,
+.stat-card:hover,
+.kpi-card-white:hover,
+.master-kpi-card:hover,
+.chart-box:hover,
+.report-chart-card:hover {
+    border-color: #94a3b8 !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.09);
+}
+
+/* Links inside all executive white cards */
+.card a:not(.btn),
+.card-luxury a:not(.btn),
+.chart-box a:not(.btn),
+.kpi-card-white,
+.master-kpi-card {
+    color: #0f172a;
+    transition: color 0.2s ease;
+}
+.card a:not(.btn):hover,
+.card-luxury a:not(.btn):hover,
+.chart-box a:not(.btn):hover {
+    color: var(--gold-accent) !important;
+}
+
+

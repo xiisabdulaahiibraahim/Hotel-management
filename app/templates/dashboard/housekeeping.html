@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Housekeeping Operations Hub | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Top Role Banner -->
+    <div class="card card-luxury mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-dark" style="width: 52px; height: 52px; background: #38bdf8; font-size: 1.5rem;">
+                        <i class="fa-solid fa-broom"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="fw-bold mb-0 text-white">Housekeeping &amp; Room Hygiene Hub</h4>
+                            <span class="badge bg-info text-dark fw-bold">Housekeeping Staff</span>
+                        </div>
+                        <p class="text-white-50 mb-0 small">Welcome back, <strong>{{ current_user.full_name or current_user.username }}</strong>. Real-time cleaning status, room turnover, and maintenance inspection.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('housekeeping.index') }}" class="btn btn-info text-dark btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-list-check me-1"></i> Housekeeping Roster
+                    </a>
+                    <a href="{{ url_for('rooms.status_board') }}" class="btn btn-outline-light btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-border-all me-1"></i> Floor Status Matrix
+                    </a>
+                    <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-warning btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-screwdriver-wrench me-1"></i> Report Issue
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 Housekeeping KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-danger border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Dirty / Turnover Required</div>
+                        <h3 class="fw-bold text-danger mt-1 mb-0">{{ dirty_rooms_count }}</h3>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger p-2 rounded"><i class="fa-solid fa-soap fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-triangle-exclamation text-danger me-1"></i> High priority cleaning</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-warning border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">In Progress</div>
+                        <h3 class="fw-bold text-warning mt-1 mb-0">{{ in_progress_count }}</h3>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning p-2 rounded"><i class="fa-solid fa-spinner fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Currently being cleaned</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-success border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Clean &amp; Inspected</div>
+                        <h3 class="fw-bold text-success mt-1 mb-0">{{ clean_rooms_count }}</h3>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded"><i class="fa-solid fa-circle-check fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Ready for guest arrival</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Total Rooms</div>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">{{ total_rooms }}</h3>
+                    </div>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary p-2 rounded"><i class="fa-solid fa-hotel fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Across all 5 floors</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Maintenance Tickets</div>
+                        <h3 class="fw-bold text-info mt-1 mb-0">{{ open_tickets }}</h3>
+                    </div>
+                    <span class="badge bg-info bg-opacity-10 text-info p-2 rounded"><i class="fa-solid fa-screwdriver-wrench fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2">Active engineering calls</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Cleaning Roster Table -->
+    <div class="card bg-white border border-secondary border-opacity-25 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-broom text-gold me-2"></i>Priority Room Cleaning Roster</h6>
+            <span class="badge bg-dark font-monospace text-gold">Real-Time Dispatch</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small text-uppercase">
+                        <th>Room #</th>
+                        <th>Floor</th>
+                        <th>Suite Category</th>
+                        <th>Current Clean Status</th>
+                        <th>Occupancy State</th>
+                        <th>Cleaning Task</th>
+                        <th class="text-end">Quick Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rooms_preview %}
+                    <tr {% if r.clean_status == 'Dirty' or r.status == 'Cleaning' %}class="table-danger table-opacity-10"{% elif r.clean_status == 'In Progress' %}class="table-warning table-opacity-10"{% endif %}>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if r.image %}
+                                <img src="{{ r.image }}" alt="Room" class="rounded border" style="width:36px; height:28px; object-fit:cover;">
+                                {% else %}
+                                <div class="rounded bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center text-muted" style="width:36px; height:28px;">
+                                    <i class="fa-solid fa-bed small"></i>
+                                </div>
+                                {% endif %}
+                                <span class="fw-bold text-dark fs-6">{{ r.room_number }}</span>
+                            </div>
+                        </td>
+                        <td>Floor {{ r.floor }}</td>
+                        <td>{{ r.room_type.name if r.room_type else 'Suite' }}</td>
+                        <td>
+                            {% if r.clean_status == 'Dirty' or r.status == 'Cleaning' %}
+                            <span class="badge bg-danger"><i class="fa-solid fa-soap me-1"></i>Dirty / Needs Cleaning</span>
+                            {% elif r.clean_status == 'In Progress' %}
+                            <span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner me-1"></i>Cleaning In Progress</span>
+                            {% elif r.clean_status == 'Inspected' %}
+                            <span class="badge bg-primary"><i class="fa-solid fa-circle-check me-1"></i>Inspected &amp; Pristine</span>
+                            {% else %}
+                            <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Clean</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {{ r.status_badge_class }}">{{ r.status }}</span>
+                        </td>
+                        <td>
+                            {% set task = r.housekeeping_tasks[-1] if r.housekeeping_tasks else None %}
+                            {% if task %}
+                            <small class="text-muted">{{ task.cleaning_type }} ({{ task.priority }})</small>
+                            {% else %}
+                            <small class="text-muted">Standard Turnaround</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                {% set task = r.housekeeping_tasks[-1] if r.housekeeping_tasks else None %}
+                                {% if task %}
+                                <form action="{{ url_for('housekeeping.update_task_status', task_id=task.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="status" value="In Progress">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Mark In Progress">
+                                        <i class="fa-solid fa-play"></i> Clean
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('housekeeping.update_task_status', task_id=task.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="status" value="Clean">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Mark Clean">
+                                        <i class="fa-solid fa-check"></i> Cleaned
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('housekeeping.update_task_status', task_id=task.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="status" value="Inspected">
+                                    <button type="submit" class="btn btn-sm btn-gold" title="Mark Inspected">
+                                        <i class="fa-solid fa-star"></i> Inspected
+                                    </button>
+                                </form>
+                                {% else %}
+                                <a href="{{ url_for('housekeeping.index') }}" class="btn btn-sm btn-outline-secondary">
+                                    Create Task
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

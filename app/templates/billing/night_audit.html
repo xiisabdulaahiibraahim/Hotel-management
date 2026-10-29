@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Night Audit & Daily Close | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-gold">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('billing.index') }}" class="text-gold">Billing</a></li>
+                <li class="breadcrumb-item active text-light">Night Audit &amp; Daily Close</li>
+            </ol>
+        </nav>
+        <h2 class="h4 fw-bold mb-0 text-white">
+            <i class="fa-solid fa-moon text-gold me-2"></i>Night Audit &amp; Daily Close (Xisaab-Xirka Habeenkii)
+        </h2>
+        <p class="text-muted small mb-0">End-of-day operational reconciliation, automatic nightly room rate posting to active guest folios, and daily revenue balancing.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if today_audit %}
+        <a href="{{ url_for('billing.night_audit_report', audit_id=today_audit.id) }}" target="_blank" class="btn btn-sm btn-outline-light fw-bold">
+            <i class="fa-solid fa-print me-1.5"></i> Print Today's Audit Report
+        </a>
+        {% endif %}
+        <button type="button" class="btn btn-sm btn-gold fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#executeAuditModal">
+            <i class="fa-solid fa-bolt me-1.5"></i> Fulinta Xisaab-Xirka (Run Night Audit)
+        </button>
+    </div>
+</div>
+
+<!-- Audit Status Notice -->
+{% if today_audit %}
+<div class="alert alert-success d-flex align-items-center justify-content-between py-2.5 px-3 mb-3 shadow-sm border-0" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-left: 4px solid #10b981 !important;">
+    <div class="d-flex align-items-center gap-2">
+        <i class="fa-solid fa-circle-check fs-5 text-success"></i>
+        <div>
+            <strong>Xisaab-xirka Maanta Waa La Fuliyay:</strong> Waxaa la xiray {{ today_audit.performed_at.strftime('%H:%M %b %d, %Y') }} (Auditor: {{ today_audit.performed_by.username if today_audit.performed_by else 'Admin' }}).
+        </div>
+    </div>
+    <a href="{{ url_for('billing.night_audit_report', audit_id=today_audit.id) }}" target="_blank" class="btn btn-xs btn-success py-1 px-2.5 fw-bold text-dark">
+        <i class="fa-solid fa-file-invoice me-1"></i> Arag Warbixinta
+    </a>
+</div>
+{% else %}
+<div class="alert alert-warning d-flex align-items-center justify-content-between py-2.5 px-3 mb-3 shadow-sm border-0" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-left: 4px solid #f59e0b !important;">
+    <div class="d-flex align-items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left fs-5 text-warning"></i>
+        <div>
+            <strong>Xisaab-xirka Maanta Wuxuu Sugayaa Fulinta:</strong> Saqda dhexe (End of Business Day), riix badhanka si qolalka loogu post-gareeyo biilka habeenkaas xisaabtana loo xiro.
+        </div>
+    </div>
+    <button type="button" class="btn btn-xs btn-gold py-1 px-2.5 fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#executeAuditModal">
+        <i class="fa-solid fa-play me-1"></i> Hadda Fuli
+    </button>
+</div>
+{% endif %}
+
+<!-- 4 Key Audit Metric Cards -->
+<div class="row g-2 mb-3">
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #3b82f6;">
+            <div class="text-muted small fw-semibold" style="font-size:0.7rem;">Occupancy (Qolalka Hoyday)</div>
+            <div class="h4 fw-bold text-white my-0.5">{{ occupied_count }} / {{ total_rooms }}</div>
+            <div class="text-muted small" style="font-size:0.68rem;"><span class="badge bg-primary bg-opacity-25 text-primary">{{ occupancy_rate }}%</span> Occupancy Rate</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #f59e0b;">
+            <div class="text-muted small fw-semibold" style="font-size:0.7rem;">Nightly Room Charges</div>
+            <div class="h4 fw-bold text-gold my-0.5">${{ "{:,.2f}".format(expected_room_rev) }}</div>
+            <div class="text-muted small" style="font-size:0.68rem;">Posting to {{ occupied_count }} guest folios</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #06b6d4;">
+            <div class="text-muted small fw-semibold" style="font-size:0.7rem;">Today's F&amp;B Dining</div>
+            <div class="h4 fw-bold text-info my-0.5">${{ "{:,.2f}".format(today_fb_sales) }}</div>
+            <div class="text-muted small" style="font-size:0.68rem;">Restaurant &amp; Delivery sales</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="card-luxury p-2.5" style="border-left: 3px solid #10b981;">
+            <div class="text-muted small fw-semibold" style="font-size:0.7rem;">Total Cash &amp; Digital Intake</div>
+            <div class="h4 fw-bold text-success my-0.5">${{ "{:,.2f}".format(total_payments) }}</div>
+            <div class="text-muted small" style="font-size:0.68rem;">{{ today_payments|length }} payments verified</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs & Tables -->
+<div class="card-luxury p-3 mb-4">
+    <ul class="nav nav-tabs border-secondary border-opacity-25 mb-3" id="auditTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active text-light fw-bold small" id="inhouse-tab" data-bs-toggle="tab" data-bs-target="#inhouse" type="button">
+                <i class="fa-solid fa-bed me-1 text-gold"></i> Qolalka Hoyday &amp; Biilasha Tonight ({{ in_house|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link text-light fw-bold small" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button">
+                <i class="fa-solid fa-money-bill-wave me-1 text-success"></i> Lacagaha La Qabtay (Payments by Method)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link text-light fw-bold small" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button">
+                <i class="fa-solid fa-clock-rotate-left me-1 text-info"></i> Taariikhda Xisaab-Xirradii Hore (Audit History)
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="auditTabsContent">
+        <!-- Tab 1: In-House Guests -->
+        <div class="tab-pane fade show active" id="inhouse">
+            <div class="table-responsive">
+                <table class="table-luxury table-sm datatable mb-0" style="font-size: 0.8rem;">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Guest Name</th>
+                            <th>Room</th>
+                            <th>Nightly Rate</th>
+                            <th>Stay Dates</th>
+                            <th>Current Folio Balance</th>
+                            <th>Audit Posting Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in in_house %}
+                        <tr>
+                            <td class="font-monospace fw-bold text-gold">{{ b.booking_reference }}</td>
+                            <td class="fw-semibold text-white">{{ b.guest.full_name if b.guest else 'Guest' }}</td>
+                            <td>
+                                {% for br in b.booking_rooms %}
+                                <span class="badge bg-primary">Room {{ br.room.room_number }}</span>
+                                {% endfor %}
+                            </td>
+                            <td class="font-monospace fw-bold text-white">
+                                {% for br in b.booking_rooms %}
+                                ${{ "{:,.2f}".format(br.price_per_night) }}
+                                {% endfor %}
+                            </td>
+                            <td><small class="text-muted">{{ b.check_in_date.strftime('%b %d') }} &rarr; {{ b.check_out_date.strftime('%b %d') }}</small></td>
+                            <td>
+                                {% set inv = b.invoices[0] if b.invoices else None %}
+                                {% if inv and inv.balance_due > 0 %}
+                                <span class="text-danger fw-bold font-monospace">${{ "{:,.2f}".format(inv.balance_due) }}</span>
+                                {% else %}
+                                <span class="badge bg-success">Settled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if today_audit %}
+                                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Posted Tonight</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark"><i class="fa-solid fa-clock me-1"></i> Awaiting Audit Run</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No guests currently in-house tonight.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: Payments Breakdown -->
+        <div class="tab-pane fade" id="payments">
+            <div class="row g-3 mb-3">
+                {% for method, amt in payment_breakdown.items() %}
+                <div class="col-md-3 col-6">
+                    <div class="p-2.5 rounded bg-black bg-opacity-25 border border-secondary border-opacity-25">
+                        <div class="text-muted small" style="font-size:0.72rem;">{{ method }}</div>
+                        <div class="h5 fw-bold text-success my-1 font-monospace">${{ "{:,.2f}".format(amt) }}</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-muted small">No payments recorded today yet.</div>
+                {% endfor %}
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-luxury table-sm datatable mb-0" style="font-size:0.78rem;">
+                    <thead>
+                        <tr>
+                            <th>Receipt Ref</th>
+                            <th>Booking</th>
+                            <th>Guest</th>
+                            <th>Method</th>
+                            <th>Amount</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in today_payments %}
+                        <tr>
+                            <td class="font-monospace text-gold">{{ p.payment_reference }}</td>
+                            <td>{{ p.booking.booking_reference if p.booking else '-' }}</td>
+                            <td>{{ p.booking.guest.full_name if p.booking and p.booking.guest else 'Guest' }}</td>
+                            <td><span class="badge bg-secondary">{{ p.payment_method }}</span></td>
+                            <td class="fw-bold text-success font-monospace">${{ "{:,.2f}".format(p.amount) }}</td>
+                            <td><small class="text-muted">{{ p.payment_date.strftime('%H:%M') }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 3: Past Night Audits -->
+        <div class="tab-pane fade" id="history">
+            <div class="table-responsive">
+                <table class="table-luxury table-sm datatable mb-0" style="font-size: 0.8rem;">
+                    <thead>
+                        <tr>
+                            <th>Audit Date</th>
+                            <th>Performed At</th>
+                            <th>Auditor</th>
+                            <th>Rooms Occupied</th>
+                            <th>Occupancy %</th>
+                            <th>Room Revenue</th>
+                            <th>F&amp;B Dining</th>
+                            <th>Total Gross Intake</th>
+                            <th>Payments Collected</th>
+                            <th class="text-end">Official Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in past_audits %}
+                        <tr>
+                            <td class="fw-bold text-gold font-monospace">{{ a.audit_date.strftime('%Y-%m-%d') }}</td>
+                            <td><small class="text-light">{{ a.performed_at.strftime('%H:%M %b %d') }}</small></td>
+                            <td>{{ a.performed_by.username if a.performed_by else 'Admin' }}</td>
+                            <td>{{ a.occupied_rooms_count }} / {{ a.total_rooms_count }}</td>
+                            <td><span class="badge bg-primary bg-opacity-25 text-primary">{{ a.occupancy_rate }}%</span></td>
+                            <td class="font-monospace fw-bold text-white">${{ "{:,.2f}".format(a.room_charges_posted) }}</td>
+                            <td class="font-monospace text-info">${{ "{:,.2f}".format(a.restaurant_sales) }}</td>
+                            <td class="font-monospace fw-bold text-gold">${{ "{:,.2f}".format(a.total_revenue) }}</td>
+                            <td class="font-monospace text-success">${{ "{:,.2f}".format(a.payments_collected) }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('billing.night_audit_report', audit_id=a.id) }}" target="_blank" class="btn btn-xs btn-outline-gold py-0.5 px-2" style="font-size:0.72rem;">
+                                    <i class="fa-solid fa-file-invoice me-1"></i> Statement
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-3">No historical night audits recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     RUN NIGHT AUDIT MODAL
+     ============================================================ -->
+<div class="modal fade" id="executeAuditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light border border-warning">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-moon text-gold me-2"></i>Fulinta Xisaab-Xirka Habeenkii (Night Audit)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('billing.execute_night_audit') }}" method="POST">
+                <div class="modal-body">
+                    <div class="p-3 rounded bg-black bg-opacity-30 border border-secondary border-opacity-25 mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Taariikhda Xisaab-Xirka:</span>
+                            <strong class="text-gold font-monospace">{{ today.strftime('%Y-%m-%d') }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Qolalka Hoyday Tonight:</span>
+                            <strong class="text-white">{{ occupied_count }} Qol ({{ occupancy_rate }}%)</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Biilka Qolalka la Post-garaynayo:</span>
+                            <strong class="text-success font-monospace">${{ "{:,.2f}".format(expected_room_rev) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Dakhliga Makhaayadda Maanta:</span>
+                            <strong class="text-info font-monospace">${{ "{:,.2f}".format(today_fb_sales) }}</strong>
+                        </div>
+                    </div>
+
+                    <p class="small text-light mb-2">
+                        Markaad riixdo <strong>"Fuli Xisaab-Xirka"</strong>:
+                    </p>
+                    <ul class="small text-muted ps-3 mb-3">
+                        <li>Qol kasta oo marti ku hoyato waxaa biilka (Folio) loogu darayaa qiimaha habeenkaas.</li>
+                        <li>Waxaa la xisaabinayaa dhammaan lacagihii maanta la qabtay (Cash, EVC, Sahal, Cards).</li>
+                        <li>Waxaa la soo saarayaa warbixinta rasmiga ah ee maalinlaha ah (Daily Financial Statement).</li>
+                    </ul>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Xusuus-qor / Notes (Optional)</label>
+                        <input type="text" name="notes" class="form-control bg-dark text-light border-secondary" placeholder="tusaale: End of Day reconciliation completed without discrepancy.">
+                    </div>
+
+                    {% if today_audit %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="force" value="true" id="forceRerun" required>
+                        <label class="form-check-label small text-warning" for="forceRerun">
+                            Maanta mar hore ayaa xisaab-xirka la sameeyay. Sax sanduuqan haddii aad doonayso inaad dib u cusbooneysiiso (Re-run Audit).
+                        </label>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-4 fw-bold">
+                        <i class="fa-solid fa-bolt me-1"></i> Fuli Xisaab-Xirka (Run Audit)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

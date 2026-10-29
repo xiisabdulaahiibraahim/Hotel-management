@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Create Reservation | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('bookings.index') }}" class="text-gold">Bookings</a></li>
+            <li class="breadcrumb-item active text-light" aria-current="page">New Reservation</li>
+        </ol>
+    </nav>
+    <h2 class="h3 fw-bold mb-1">New Guest Reservation</h2>
+    <p class="text-muted small mb-0">Select dates, guest profile, room choices, and deposit details.</p>
+</div>
+
+<form action="{{ url_for('bookings.new') }}" method="POST" id="bookingForm">
+    <div class="row g-4">
+        <!-- Left Column: Dates & Room Selection -->
+        <div class="col-lg-7">
+            <!-- 1. Dates & Occupancy -->
+            <div class="card-luxury p-4 mb-4">
+                <h5 class="fw-bold mb-3"><i class="fa-regular fa-calendar-check text-gold me-2"></i>1. Dates & Guests</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Check-in Date</label>
+                        <input type="date" name="check_in_date" id="checkInDate" class="form-control bg-dark text-light border-secondary" value="{{ today }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Check-out Date</label>
+                        <input type="date" name="check_out_date" id="checkOutDate" class="form-control bg-dark text-light border-secondary" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Adults</label>
+                        <input type="number" name="adults" min="1" max="10" value="1" class="form-control bg-dark text-light border-secondary" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Children</label>
+                        <input type="number" name="children" min="0" max="10" value="0" class="form-control bg-dark text-light border-secondary">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Room Selection -->
+            <div class="card-luxury p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-door-open text-gold me-2"></i>2. Select Room(s)</h5>
+                    <button type="button" class="btn btn-sm btn-outline-gold" id="btnRefreshRooms">
+                        <i class="fa-solid fa-arrows-rotate me-1"></i> Check Availability
+                    </button>
+                </div>
+                
+                <div class="row g-3" id="roomsContainer">
+                    {% for room in all_rooms %}
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-secondary p-3 h-100">
+                            <div class="form-check">
+                                <input class="form-check-input room-checkbox" type="checkbox" name="room_ids" value="{{ room.id }}" id="room{{ room.id }}" data-price="{{ room.room_type.base_price }}">
+                                <label class="form-check-label w-100" for="room{{ room.id }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="text-light">Room {{ room.room_number }}</strong>
+                                        <span class="text-gold fw-bold">${{ "{:,.2f}".format(room.room_type.base_price) }} / nt</span>
+                                    </div>
+                                    <div class="small text-muted">{{ room.room_type.name }} | Floor {{ room.floor }}</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 3. Preferences & Promo -->
+            <div class="card-luxury p-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-sliders text-gold me-2"></i>3. Booking Source & Notes</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Booking Source</label>
+                        <select name="booking_source" class="form-select bg-dark text-light border-secondary">
+                            <option value="Walk-in">Walk-in</option>
+                            <option value="Phone">Phone</option>
+                            <option value="Website">Website</option>
+                            <option value="OTA Booking.com">OTA Booking.com</option>
+                            <option value="OTA Expedia">OTA Expedia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted">Promo Code (Optional)</label>
+                        <input type="text" name="promo_code" class="form-control bg-dark text-light border-secondary" placeholder="e.g. WELCOME10">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-muted">Special Requests / Preferences</label>
+                        <textarea name="special_requests" class="form-control bg-dark text-light border-secondary" rows="2" placeholder="e.g. Quiet room, extra pillow, late checkout request"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Guest Profile & Financial Summary -->
+        <div class="col-lg-5">
+            <!-- Guest Selection -->
+            <div class="card-luxury p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fa-regular fa-user text-gold me-2"></i>Guest Details</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="toggleGuestMode">New Guest</button>
+                </div>
+
+                <!-- Existing Guest Selector -->
+                <div id="existingGuestSection">
+                    <label class="form-label small text-muted">Select Registered Guest</label>
+                    <select name="guest_id" id="guestSelect" class="form-select bg-dark text-light border-secondary mb-3">
+                        <option value="">-- Choose Existing Guest --</option>
+                        {% for g in guests %}
+                        <option value="{{ g.id }}">{{ g.full_name }} ({{ g.phone }}) - {{ g.vip_tier }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Quick New Guest Form -->
+                <div id="newGuestSection" class="d-none">
+                    <input type="hidden" name="is_new_guest" id="isNewGuestInput" value="0">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small">First Name</label>
+                            <input type="text" name="first_name" class="form-control form-control-sm" placeholder="Enter first name (e.g. Hassan)">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Last Name</label>
+                            <input type="text" name="last_name" class="form-control form-control-sm" placeholder="Enter last name (e.g. Warsame)">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Phone Number</label>
+                            <input type="text" name="phone" class="form-control form-control-sm" placeholder="Enter phone number (e.g. +252 61 5000000)">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Email Address</label>
+                            <input type="email" name="email" class="form-control form-control-sm" placeholder="Enter email address (e.g. guest@example.com)">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">ID / Passport Number</label>
+                            <input type="text" name="id_number" class="form-control form-control-sm" placeholder="Enter ID or passport number (e.g. P0123456)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Summary & Advance Deposit -->
+            <div class="card-luxury p-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-receipt text-gold me-2"></i>Summary & Deposit</h5>
+                <div class="mb-3">
+                    <label class="form-label small">Advance Deposit Amount ($)</label>
+                    <input type="number" step="0.01" name="deposit_amount" value="0.00" class="form-control" placeholder="Enter deposit amount (e.g. 100.00)">
+                    <small class="text-muted" style="font-size: 0.72rem;">Deposit will be credited immediately to guest folio invoice.</small>
+                </div>
+
+                <hr class="border-secondary border-opacity-25 my-3">
+
+                <button type="submit" class="btn btn-gold w-100 py-2 fw-bold">
+                    <i class="fa-solid fa-check me-2"></i> Confirm Reservation
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set default tomorrow for checkout
+    const inDate = document.getElementById('checkInDate');
+    const outDate = document.getElementById('checkOutDate');
+    if (inDate && outDate) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 2);
+        outDate.value = tomorrow.toISOString().split('T')[0];
+    }
+
+    // Toggle guest selection mode
+    const toggleBtn = document.getElementById('toggleGuestMode');
+    const existSec = document.getElementById('existingGuestSection');
+    const newSec = document.getElementById('newGuestSection');
+    const guestSelect = document.getElementById('guestSelect');
+    let isNew = false;
+
+    toggleBtn.addEventListener('click', function () {
+        isNew = !isNew;
+        if (isNew) {
+            existSec.classList.add('d-none');
+            newSec.classList.remove('d-none');
+            toggleBtn.textContent = 'Existing Guest';
+            guestSelect.value = '';
+        } else {
+            existSec.classList.remove('d-none');
+            newSec.classList.add('d-none');
+            toggleBtn.textContent = 'New Guest';
+        }
+    });
+
+    // Dynamic Room Check
+    document.getElementById('btnRefreshRooms').addEventListener('click', function () {
+        const checkIn = inDate.value;
+        const checkOut = outDate.value;
+        if (!checkIn || !checkOut) {
+            Swal.fire('Please choose dates', 'Select both Check-in and Check-out dates first.', 'warning');
+            return;
+        }
+
+        fetch(`/api/rooms/available?check_in=${checkIn}&check_out=${checkOut}`)
+            .then(res => res.json())
+            .then(rooms => {
+                const container = document.getElementById('roomsContainer');
+                if (rooms.length === 0) {
+                    container.innerHTML = '<div class="col-12 text-center text-warning py-3">No available rooms for the selected dates.</div>';
+                    return;
+                }
+                container.innerHTML = rooms.map(r => `
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-secondary p-3 h-100">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="room_ids" value="${r.id}" id="room${r.id}">
+                                <label class="form-check-label w-100" for="room${r.id}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="text-light">Room ${r.room_number}</strong>
+                                        <span class="text-gold fw-bold">$${r.base_price.toFixed(2)} / nt</span>
+                                    </div>
+                                    <div class="small text-muted">${r.type_name} | Floor ${r.floor}</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            });
+    });
+</script>
+{% endblock %}

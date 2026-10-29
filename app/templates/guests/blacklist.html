@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}VIP Guest Registry & Blacklist Security | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('guests.index') }}" class="text-gold">Guests CRM</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">VIP &amp; Blacklist Security</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">VIP Guest Registry &amp; <span class="text-gold">Security Blacklist</span></h2>
+        <p class="text-muted small mb-0">Maamulka martida sharafta leh (VIPs) iyo kuwa amniga ama anshaxa dartiis looga mamnuucay hotelka (Blacklisted Guests).</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('guests.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-users me-1"></i> All Guests Directory
+        </a>
+        <a href="{{ url_for('guests.add') }}" class="btn btn-gold btn-sm fw-bold">
+            <i class="fa-solid fa-user-plus me-1"></i> Add New Guest
+        </a>
+    </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-danger">
+            <div class="text-muted small text-uppercase fw-bold">Blacklisted Guests</div>
+            <div class="fs-4 fw-bold text-danger mt-1">{{ blacklisted|length }} Barred</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Flagged on booking attempts</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-warning">
+            <div class="text-muted small text-uppercase fw-bold">VIP Platinum Royalty</div>
+            <div class="fs-4 fw-bold text-gold mt-1">{{ vip_platinum|length }} Dignitaries</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Highest hotel loyalty tier</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-info">
+            <div class="text-muted small text-uppercase fw-bold">Gold VIP Guests</div>
+            <div class="fs-4 fw-bold text-info mt-1">{{ vip_gold|length }} Guests</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Frequent premium residents</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-primary">
+            <div class="text-muted small text-uppercase fw-bold">Silver Tier Guests</div>
+            <div class="fs-4 fw-bold text-light mt-1">{{ vip_silver|length }} Guests</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Growing repeat travelers</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs: Blacklisted vs VIPs -->
+<ul class="nav nav-pills mb-3 border-bottom border-secondary border-opacity-25 pb-2" id="securityTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active btn-sm fw-bold me-2" id="blacklist-tab" data-bs-toggle="tab" data-bs-target="#blacklist-pane" type="button" role="tab">
+            <i class="fa-solid fa-ban text-danger me-1"></i> Blacklisted Roster ({{ blacklisted|length }})
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link btn-sm fw-bold me-2" id="platinum-tab" data-bs-toggle="tab" data-bs-target="#platinum-pane" type="button" role="tab">
+            <i class="fa-solid fa-crown text-gold me-1"></i> VIP Platinum &amp; Gold ({{ vip_platinum|length + vip_gold|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="securityTabContent">
+    <!-- Tab 1: Blacklisted -->
+    <div class="tab-pane fade show active" id="blacklist-pane" role="tabpanel">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <h5 class="fw-bold mb-0 text-white">
+                    <i class="fa-solid fa-shield-halved text-danger me-2"></i>Barred Guests &amp; Security Alerts
+                </h5>
+                <span class="badge bg-danger">{{ blacklisted|length }} Blocked</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>Guest Profile</th>
+                            <th>Contact Info</th>
+                            <th>ID / Passport</th>
+                            <th>Nationality</th>
+                            <th>Security Notes / Reason</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in blacklisted %}
+                        <tr>
+                            <td>
+                                <strong class="text-danger d-block">{{ g.full_name }}</strong>
+                                <span class="badge bg-danger"><i class="fa-solid fa-ban me-1"></i>Barred from Property</span>
+                            </td>
+                            <td>
+                                <div><small class="text-light">{{ g.phone }}</small></div>
+                                <div><small class="text-muted">{{ g.email }}</small></div>
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ g.id_type }}:</span><br>
+                                <code>{{ g.id_number }}</code>
+                            </td>
+                            <td>{{ g.nationality }}</td>
+                            <td>
+                                <span class="text-warning small">{{ g.notes or 'Flagged for behavioral or payment violation' }}</span>
+                            </td>
+                            <td class="text-end">
+                                <form action="{{ url_for('guests.toggle_blacklist', guest_id=g.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Ma hubtaa inaad ka saarto liiska mamnuuca (Remove Blacklist)?');">
+                                        <i class="fa-solid fa-user-check me-1"></i> Pardon &amp; Unban
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('guests.profile', guest_id=g.id) }}" class="btn btn-sm btn-outline-secondary ms-1">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-shield-check fs-1 mb-2 text-success"></i>
+                                <div>Wax marti ah oo hadda ku jirta liiska mamnuuca ma jiraan (Zero Blacklisted Guests).</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: VIP Directory -->
+    <div class="tab-pane fade" id="platinum-pane" role="tabpanel">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <h5 class="fw-bold mb-0 text-white">
+                    <i class="fa-solid fa-crown text-gold me-2"></i>VIP Platinum &amp; Gold Dignitaries
+                </h5>
+                <span class="badge bg-gold text-dark fw-bold">Royal Protocol List</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>VIP Guest</th>
+                            <th>Tier</th>
+                            <th>Phone &amp; Email</th>
+                            <th>Reward Points</th>
+                            <th>Total Stays</th>
+                            <th class="text-end">Profile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in vip_platinum + vip_gold %}
+                        <tr>
+                            <td>
+                                <strong class="text-light d-block">{{ g.full_name }}</strong>
+                                <span class="text-muted small">{{ g.nationality }}</span>
+                            </td>
+                            <td>
+                                {% if g.vip_tier == 'VIP Platinum' %}
+                                <span class="badge bg-gold text-white"><i class="fa-solid fa-crown me-1"></i>VIP Platinum</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark"><i class="fa-solid fa-star me-1"></i>Gold</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div><small class="text-light">{{ g.phone }}</small></div>
+                                <div><small class="text-muted">{{ g.email }}</small></div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-gold">{{ g.loyalty_points }} pts</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary">{{ g.bookings|length }} Stays</span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('guests.profile', guest_id=g.id) }}" class="btn btn-sm btn-outline-gold">
+                                    <i class="fa-solid fa-user-tie me-1"></i> View Dossier
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

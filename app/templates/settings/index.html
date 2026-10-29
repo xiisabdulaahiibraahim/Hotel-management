@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Hotel Settings & Policies | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Hotel Settings & Configuration</h2>
+        <p class="text-muted small mb-0">Manage property profile, currencies, tax parameters, and view audit trail.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Section 1: Full-Width Hotel Branding, Logo & Configuration Form -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-25 pb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold mb-1 text-white">
+                        <i class="fa-solid fa-sliders text-gold me-2"></i>Global Properties, Branding & System Policies
+                    </h5>
+                    <small class="text-light opacity-75">Configure property branding, official logo, currencies, tax parameters, and check-in schedules.</small>
+                </div>
+                <span class="badge bg-gold text-dark fw-bold px-3 py-1.5"><i class="fa-solid fa-hotel me-1"></i>Master Property Configuration</span>
+            </div>
+
+            <form action="{{ url_for('settings.index') }}" method="POST" enctype="multipart/form-data">
+                <!-- Hotel Branding & Official Logo Row -->
+                <div class="p-3 mb-4 rounded border border-warning border-opacity-25" style="background: rgba(217, 119, 6, 0.05);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-gold mb-0"><i class="fa-solid fa-crown me-2"></i>Official Hotel Identity & Logo Branding</h6>
+                        <span class="badge bg-gold text-dark fw-bold"><i class="fa-solid fa-upload me-1"></i>Bedel Sawirka Logada</span>
+                    </div>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-3 text-center">
+                            <div class="d-inline-block p-2 rounded bg-black bg-opacity-50 border border-warning border-opacity-50 shadow">
+                                <img src="{{ url_for('static', filename=settings.get('hotel_logo_path', 'img/hotel_logo.jpg')) }}" 
+                                     id="previewLogoImg"
+                                     alt="Official Hotel Logo" 
+                                     class="rounded img-fluid" 
+                                     style="max-width: 140px; height: 140px; object-fit: cover; border: 2px solid #d97706;"
+                                     onerror="this.src='{{ url_for('static', filename='img/hotel_logo.jpg') }}'">
+                            </div>
+                            <div class="small text-gold fw-semibold mt-2">Active Property Emblem</div>
+                            <small class="text-muted d-block mb-2">Muujinta Tooska ah (Live)</small>
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-gold py-1 px-2" onclick="document.getElementById('hotelLogoInput').click()" title="Dooro sawir kale">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit Logo
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" data-bs-toggle="modal" data-bs-target="#deleteLogoModal" title="Tirtir logada">
+                                    <i class="fa-solid fa-trash-can me-1"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-light">
+                                        <i class="fa-solid fa-cloud-arrow-up text-gold me-1"></i> Soo Geli Sawir Cusub oo Logo ah (Upload New Hotel Logo)
+                                    </label>
+                                    <input type="file" name="hotel_logo_file" id="hotelLogoInput" accept="image/png, image/jpeg, image/jpg, image/webp, image/svg+xml" class="form-control" onchange="previewSelectedLogo(event)">
+                                    <small class="text-muted">Dooro sawirkaaga (PNG, JPG, WEBP). Waxay si toos ah uga muuqan doontaa Navbar-ka, Sidebar-ka, iyo Warqadaha Daabacaadda.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-light">Hotel Official Name</label>
+                                    <input type="text" name="hotel_name" value="{{ settings.get('hotel_name', 'The Grand Horizon Luxury Hotel & Resort') }}" class="form-control" required placeholder="Enter hotel official name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-light">System Brand Title (Top Header)</label>
+                                    <input type="text" name="system_brand_title" value="{{ settings.get('system_brand_title', 'Grand Horizon HMS') }}" class="form-control" placeholder="Short brand title for top header">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-light">Tagline</label>
+                                    <input type="text" name="hotel_tagline" value="{{ settings.get('hotel_tagline', 'Excellence in Hospitality, Unrivaled Luxury') }}" class="form-control" placeholder="Enter hotel tagline">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-light">Logo Asset Path (Static Image / Custom URL)</label>
+                                    <input type="text" name="hotel_logo_path" value="{{ settings.get('hotel_logo_path', 'img/hotel_logo.jpg') }}" class="form-control" placeholder="img/hotel_logo.jpg">
+                                    <small class="text-muted">Path-ka tooska ah ee sawirka logada nidaamka</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact & Location Row -->
+                <h6 class="fw-bold text-white mb-3"><i class="fa-solid fa-location-dot text-gold me-2"></i>Contact Details & Property Address</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Reservations Email</label>
+                        <input type="email" name="hotel_email" value="{{ settings.get('hotel_email', 'reservations@grandhorizon.com') }}" class="form-control" placeholder="reservations@grandhorizon.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Front Desk Phone</label>
+                        <input type="text" name="hotel_phone" value="{{ settings.get('hotel_phone', '+252 61 555-0100') }}" class="form-control" placeholder="+252 (61) 555-0100">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Physical Address</label>
+                        <input type="text" name="hotel_address" value="{{ settings.get('hotel_address', 'Ocean Boulevard, Lido Coastline, Mogadishu, Somalia') }}" class="form-control" placeholder="Enter physical street address">
+                    </div>
+                </div>
+
+                <!-- Financial & Tax Parameters -->
+                <h6 class="fw-bold text-white mb-3"><i class="fa-solid fa-coins text-gold me-2"></i>Currency, Tax & Service Charge Schedules</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Base Currency</label>
+                        <input type="text" name="currency_code" value="{{ settings.get('currency_code', 'USD') }}" class="form-control" placeholder="USD">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Currency Symbol</label>
+                        <input type="text" name="currency_symbol" value="{{ settings.get('currency_symbol', '$') }}" class="form-control" placeholder="$">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Secondary Currency</label>
+                        <input type="text" name="secondary_currency" value="{{ settings.get('secondary_currency', 'SOS') }}" class="form-control" placeholder="SOS">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Exchange Rate (USD to SOS)</label>
+                        <input type="number" step="100" name="exchange_rate_usd_sos" value="{{ settings.get('exchange_rate_usd_sos', '26000') }}" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Standard VAT / Tax Rate (%)</label>
+                        <input type="number" step="0.1" name="tax_rate_percentage" value="{{ settings.get('tax_rate_percentage', '5.0') }}" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Service Surcharge (%)</label>
+                        <input type="number" step="0.1" name="service_charge_percentage" value="{{ settings.get('service_charge_percentage', '3.0') }}" class="form-control">
+                    </div>
+                </div>
+
+                <!-- Hotel Operational Rules -->
+                <h6 class="fw-bold text-white mb-3"><i class="fa-solid fa-clock text-gold me-2"></i>Front Desk Operational Time Rules</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Standard Check-In Time</label>
+                        <input type="text" name="check_in_time" value="{{ settings.get('check_in_time', '14:00') }}" class="form-control" placeholder="14:00">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Standard Check-Out Time</label>
+                        <input type="text" name="check_out_time" value="{{ settings.get('check_out_time', '11:00') }}" class="form-control" placeholder="11:00">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Default Language</label>
+                        <select name="default_language" class="form-select">
+                            <option value="English" selected>English</option>
+                            <option value="Somali">Somali (Af-Soomaali)</option>
+                            <option value="Arabic">Arabic (العربية)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label">Free Cancellation (Days Prior)</label>
+                        <input type="number" name="cancellation_days" value="{{ settings.get('cancellation_days', '2') }}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="border-top border-secondary border-opacity-25 pt-3">
+                    <button type="submit" class="btn btn-gold px-4 py-2 fw-bold">
+                        <i class="fa-solid fa-save me-1"></i> Save All Properties & Branding
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Section 2: Full-Width Security & Audit Trail -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <div>
+                    <h5 class="fw-bold mb-1 text-white">
+                        <i class="fa-solid fa-shield-halved text-gold me-2"></i>Security & Live System Audit Trail
+                    </h5>
+                    <small class="text-light opacity-75">Immutable event logs, authentication telemetry, and administrative actions</small>
+                </div>
+                <span class="badge bg-secondary px-2.5 py-1">{{ recent_audits|length }} Recent Events</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-luxury">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Timestamp</th>
+                            <th>Staff Member</th>
+                            <th>IP Address</th>
+                            <th>Target Entity</th>
+                            <th>Event Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_audits %}
+                        <tr>
+                            <td>
+                                {% if 'LOGIN' in log.action %}
+                                <span class="badge bg-success text-white fw-bold"><i class="fa-solid fa-key me-1"></i>{{ log.action }}</span>
+                                {% elif 'DELETE' in log.action or 'CANCEL' in log.action %}
+                                <span class="badge bg-danger text-white fw-bold"><i class="fa-solid fa-trash me-1"></i>{{ log.action }}</span>
+                                {% elif 'UPDATE' in log.action or 'EDIT' in log.action %}
+                                <span class="badge bg-warning text-dark fw-bold"><i class="fa-solid fa-pen me-1"></i>{{ log.action }}</span>
+                                {% else %}
+                                <span class="badge bg-primary text-white fw-bold"><i class="fa-solid fa-circle-info me-1"></i>{{ log.action }}</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="text-light font-monospace small">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span></td>
+                            <td><strong class="text-white">{{ log.user.username if log.user else 'System' }}</strong></td>
+                            <td><span class="badge bg-dark border border-secondary text-light">{{ log.ip_address or '127.0.0.1' }}</span></td>
+                            <td><span class="text-gold fw-semibold">{{ log.entity_name }} {% if log.entity_id %}#{{ log.entity_id }}{% endif %}</span></td>
+                            <td><span class="text-light opacity-90">{{ log.details or 'Standard administrative operation completed.' }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No audit logs recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Delete Logo Confirmation -->
+<div class="modal fade" id="deleteLogoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Tirtir Logada (Delete Custom Logo)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('settings.delete_logo') }}" method="POST">
+                <div class="modal-body text-start">
+                    <p class="mb-3">Ma hubtaa inaad tirtirto logadan cusub oo aad nidaamka ku celiso astaantii hore ee asalka ahayd (Default Luxury Emblem)?</p>
+                    <div class="p-3 rounded bg-light border text-center">
+                        <img src="{{ url_for('static', filename='img/hotel_logo.jpg') }}" alt="Default" style="width: 80px; height: 80px; object-fit: cover;" class="rounded border">
+                        <div class="small text-muted mt-2">Astaanta hore ayaa dib loogu soo celin doonaa nidaamka oo dhan.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji (Cancel)</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold">
+                        <i class="fa-solid fa-trash-can me-1"></i> Haa, Tirtir Logada
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewSelectedLogo(event) {
+        const input = event.target;
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('previewLogoImg');
+                if (previewImg) {
+                    previewImg.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

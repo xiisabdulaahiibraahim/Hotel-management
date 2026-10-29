@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ hotel_name }} | 5-Star Luxury Oceanfront Resort</title>
+    <!-- Google Fonts & Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <style>
+        .portal-nav {
+            background: rgba(10, 15, 29, 0.96);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .portal-nav .nav-link {
+            font-size: 0.82rem;
+            letter-spacing: 0.02em;
+            padding: 0.4rem 0.6rem !important;
+        }
+        .portal-hero {
+            position: relative;
+            min-height: 72vh;
+            background: linear-gradient(rgba(10, 15, 29, 0.75), rgba(10, 15, 29, 0.92)), url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&auto=format&fit=crop') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+        }
+        .search-engine-bar {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(217, 119, 6, 0.35);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            margin-top: -45px;
+            position: relative;
+            z-index: 20;
+        }
+
+        /* Form Inputs & Labels Universal Fix */
+        .form-label,
+        label {
+            color: #f8fafc !important;
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 0.3rem !important;
+            letter-spacing: 0.02em;
+        }
+        .form-control,
+        .form-select,
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="date"],
+        input[type="number"],
+        textarea,
+        select {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            font-weight: 500 !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            font-size: 0.84rem !important;
+        }
+        .form-control::placeholder,
+        input::placeholder,
+        textarea::placeholder {
+            color: #64748b !important;
+            font-weight: 400 !important;
+            opacity: 1 !important;
+        }
+        .form-control:focus,
+        .form-select:focus,
+        input:focus,
+        textarea:focus,
+        select:focus {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border-color: #d97706 !important;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.25) !important;
+        }
+        .form-select option,
+        select option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+        }
+    </style>
+</head>
+<body style="background-color: #0a0f1d; color: #f8fafc;">
+    <!-- Public Header Navigation (Compact & Sleek) -->
+    <nav class="navbar navbar-expand-lg navbar-dark portal-nav sticky-top py-2">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('guest_portal.index') }}">
+                <img src="{{ url_for('static', filename='img/hotel_logo.jpg') }}" alt="Grand Horizon Logo" class="rounded border border-warning" style="width: 36px; height: 36px; object-fit: cover;">
+                <div>
+                    <span class="serif-gold fw-bold d-block" style="font-size: 1.05rem; line-height: 1;">THE GRAND HORIZON</span>
+                    <small class="text-gold text-uppercase" style="font-size: 0.58rem; letter-spacing: 0.16em; opacity: 0.85;">Luxury Hotel & Resort</small>
+                </div>
+            </a>
+            <button class="navbar-toggler py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#portalNav">
+                <span class="navbar-toggler-icon" style="font-size: 0.85rem;"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="portalNav">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+                    <li class="nav-item"><a class="nav-link active text-gold fw-semibold" href="#hero">Home</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="#suites">Suites</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="#amenities">Amenities</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="#reviews">Reviews</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="{{ url_for('guest_portal.my_bookings') }}">My Bookings</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="{{ url_for('guest_portal.delivery_page') }}"><i class="fa-solid fa-truck-fast me-1" style="color:#f59e0b;"></i>Delivery</a></li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-gold btn-sm px-2.5 py-1" style="font-size: 0.78rem;">
+                        <i class="fa-solid fa-lock me-1"></i> Staff Portal
+                    </a>
+                    <a href="#bookingSection" class="btn btn-gold btn-sm px-3 py-1 fw-bold" style="font-size: 0.78rem;">
+                        Book Stay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="portal-hero" id="hero">
+        <div class="container py-5 text-center text-lg-start">
+            <div class="row align-items-center">
+                <div class="col-lg-9">
+                    <span class="badge bg-gold px-3 py-1.5 text-uppercase mb-2.5 fw-bold shadow-sm" style="letter-spacing: 0.14em; font-size: 0.8rem;">
+                        <i class="fa-solid fa-star me-1"></i> Unrivaled Coastal Luxury
+                    </span>
+                    <h1 class="fw-bold mb-3 serif-gold text-white" style="font-size: 2.85rem; line-height: 1.22; text-shadow: 0 4px 18px rgba(0,0,0,0.6);">
+                        Experience the Pinnacle of Oceanfront Hospitality
+                    </h1>
+                    <p class="text-light opacity-90 mb-4" style="font-size: 1.05rem; line-height: 1.7; max-width: 680px; font-weight: 400;">
+                        Nestled along the pristine Indian Ocean coast, The Grand Horizon invites you to indulge in world-class royal suites, award-winning culinary mastery, and bespoke Somali hospitality.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
+                        <a href="#suites" class="btn btn-gold btn-sm px-3.5 py-2 fw-bold" style="font-size: 0.88rem;">
+                            <i class="fa-solid fa-compass me-1"></i> Explore Suites
+                        </a>
+                        <a href="{{ url_for('guest_portal.my_bookings') }}" class="btn btn-outline-light btn-sm px-3.5 py-2" style="font-size: 0.88rem;">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i> Find My Booking
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Direct Booking Engine Bar -->
+    <div class="container" id="bookingSection">
+        <div class="search-engine-bar">
+            <form action="{{ url_for('guest_portal.book_online') }}" method="POST" enctype="multipart/form-data">
+                <div class="row g-2 align-items-end">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">
+                            <i class="fa-regular fa-calendar me-1 text-gold"></i>Check-in
+                        </label>
+                        <input type="date" name="check_in" value="{{ checkin_default }}" class="form-control form-control-sm bg-dark text-light border-secondary" required>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">
+                            <i class="fa-regular fa-calendar-check me-1 text-gold"></i>Check-out
+                        </label>
+                        <input type="date" name="check_out" value="{{ checkout_default }}" class="form-control form-control-sm bg-dark text-light border-secondary" required>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">
+                            <i class="fa-solid fa-bed me-1 text-gold"></i>Suite Type
+                        </label>
+                        <select name="room_type_id" class="form-select form-select-sm bg-dark text-light border-secondary" required>
+                            {% for t in room_types %}
+                            <option value="{{ t.id }}">{{ t.name }} (from ${{ "{:,.2f}".format(t.base_price) }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <button type="button" class="btn btn-gold btn-sm w-100 py-1.5 fw-bold" style="font-size: 0.82rem;" data-bs-toggle="modal" data-bs-target="#onlineBookModal">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i> Reserve Online
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live Available Rooms Showcase -->
+    <section class="py-4 my-4" id="suites">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+                <div>
+                    <span class="text-gold text-uppercase fw-bold" style="letter-spacing: 0.12em; font-size: 0.75rem;">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i> Live Available Rooms &amp; Suites
+                    </span>
+                    <h3 class="fw-bold serif-gold mt-1 mb-0" style="font-size: 1.85rem;">Qolalka Hadda Bannaan (Available Rooms)</h3>
+                    <p class="text-light opacity-75 small mb-0 mt-1">Room walbo oo banaan hadda waad qabsan kartaa adigoo arkaya sawiradiisa, dabaqa, iyo nooca sariirta.</p>
+                    <div class="bg-gold mt-2" style="width: 50px; height: 2px; border-radius: 2px;"></div>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-2 fw-bold d-flex align-items-center">
+                        <i class="fa-solid fa-hotel me-1.5"></i> {{ available_rooms|length }} Qol oo Bannaan (Available)
+                    </span>
+                    <a href="{{ url_for('guest_portal.rooms_catalog') }}" class="btn btn-outline-gold btn-sm px-3 py-2 fw-semibold" style="font-size: 0.8rem;">
+                        View All Suites <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Suite / Room Type Filter Tabs -->
+            <div class="d-flex gap-2 mb-4 flex-wrap">
+                <button type="button" class="btn btn-sm btn-outline-gold active px-3.5 py-1.5 fw-bold rounded-pill room-filter-btn" data-filter="all" onclick="filterRoomCards('all', this)">
+                    All Available ({{ available_rooms|length }})
+                </button>
+                {% for t in room_types %}
+                {% set t_avail = (available_rooms|selectattr("room_type_id", "equalto", t.id)|list)|length %}
+                <button type="button" class="btn btn-sm btn-outline-gold px-3 py-1.5 fw-semibold rounded-pill room-filter-btn" data-filter="type-{{ t.id }}" onclick="filterRoomCards('type-{{ t.id }}', this)">
+                    {{ t.name }} <span class="badge bg-dark ms-1 text-gold">{{ t_avail }}</span>
+                </button>
+                {% endfor %}
+            </div>
+
+            {% if available_rooms %}
+            <div class="row g-4" id="availableRoomsGrid">
+                {% for rm in available_rooms %}
+                <div class="col-lg-4 col-md-6 room-card-item" data-type="type-{{ rm.room_type_id }}">
+                    <div class="card-luxury h-100 overflow-hidden d-flex flex-column justify-content-between shadow-lg" style="border: 1px solid rgba(217,119,6,0.3); border-radius: 14px;">
+                        <div>
+                            <!-- Room Image with live sync -->
+                            <div style="height: 200px; background: url('{{ rm.display_image }}') center/cover no-repeat; position: relative;">
+                                <div class="position-absolute top-0 start-0 m-2.5 d-flex gap-1.5">
+                                    <span class="badge bg-dark bg-opacity-90 border border-warning text-gold fw-bold px-2.5 py-1.5" style="font-size: 0.85rem;">
+                                        <i class="fa-solid fa-door-open me-1"></i> Room {{ rm.room_number }}
+                                    </span>
+                                    <span class="badge bg-success px-2 py-1.5 fw-bold" style="font-size: 0.75rem;">
+                                        <i class="fa-solid fa-check me-1"></i> Available
+                                    </span>
+                                </div>
+                                <span class="badge bg-dark bg-opacity-90 position-absolute bottom-0 end-0 m-2.5 px-3 py-1.5 fw-bold font-monospace text-gold border border-warning" style="font-size: 0.95rem;">
+                                    ${{ "{:,.2f}".format(rm.room_type.base_price) }} <span style="font-size: 0.7rem; font-weight: normal; color: #cbd5e1;">/ habeen</span>
+                                </span>
+                            </div>
+
+                            <div class="p-3.5">
+                                <div class="d-flex justify-content-between align-items-start mb-1.5">
+                                    <h5 class="fw-bold text-white mb-0" style="font-size: 1.15rem;">{{ rm.room_type.name }}</h5>
+                                    <small class="badge bg-secondary bg-opacity-50 text-light border border-secondary" style="font-size: 0.72rem;">
+                                        Dabaqa {{ rm.floor }}-aad (Floor {{ rm.floor }})
+                                    </small>
+                                </div>
+                                <p class="text-white small mb-3" style="font-size: 0.84rem; line-height: 1.5; color: #f1f5f9 !important;">
+                                    {{ rm.room_type.description or 'Qol raaxo leh oo loogu talagalay deganaan, qurux iyo adeeg heersare ah.' }}
+                                </p>
+                                
+                                <!-- Detailed Spaces Breakdown: Jiif, Fadhi, Musqul, Balakoon -->
+                                <div class="p-2.5 rounded mb-3" style="background: rgba(7, 12, 24, 0.7); border: 1px solid rgba(217, 119, 6, 0.2);">
+                                    <div class="small mb-1.5 text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 65px;"><i class="fa-solid fa-bed me-1"></i> Jiif:</strong>
+                                        <span>{{ rm.room_type.bed_type }} (Sariir raaxo leh)</span>
+                                    </div>
+                                    <div class="small mb-1.5 text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 65px;"><i class="fa-solid fa-couch me-1"></i> Fadhi:</strong>
+                                        <span>{% if 'Suite' in rm.room_type.name or 'Villa' in rm.room_type.name %}Qol Fadhi gaar ah (Living Area) &amp; Sofa{% else %}Aag Fadhi oo raaxo leh &amp; Miis shaqo{% endif %}</span>
+                                    </div>
+                                    <div class="small mb-1.5 text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 65px;"><i class="fa-solid fa-bath me-1"></i> Musqul:</strong>
+                                        <span>Musqul casri ah oo leh Qubays kulul &amp; qabow</span>
+                                    </div>
+                                    <div class="small text-light d-flex align-items-center">
+                                        <strong class="text-gold me-2" style="min-width: 65px;"><i class="fa-solid fa-sun me-1"></i> Muuqaal:</strong>
+                                        <span>{% if 'Ocean' in rm.room_type.name or 'Villa' in rm.room_type.name %}Balakoon weyn &amp; Muuqaalka Badda (Ocean View){% else %}Balakoon / Daaqad hawo fiican leh{% endif %}</span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-1.5 mb-2">
+                                    <span class="badge bg-dark border border-secondary text-light opacity-90" style="font-size: 0.72rem;"><i class="fa-solid fa-user-group me-1 text-gold"></i>{{ rm.room_type.capacity_adults }} Qof</span>
+                                    <span class="badge bg-dark border border-secondary text-light opacity-90" style="font-size: 0.72rem;"><i class="fa-solid fa-maximize me-1 text-gold"></i>{{ rm.room_type.size_sqm }} m²</span>
+                                    <span class="badge bg-dark border border-secondary text-light opacity-90" style="font-size: 0.72rem;"><i class="fa-solid fa-wifi me-1 text-gold"></i>Free WiFi</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-3.5 pb-3.5">
+                            <button type="button" class="btn btn-gold btn-sm w-100 py-2 fw-bold shadow-sm" onclick="selectSuiteForBooking({{ rm.room_type.id }}, '{{ rm.room_type.name|replace("'", "\\'") }} (Room {{ rm.room_number }})', {{ rm.room_type.base_price }})">
+                                <i class="fa-solid fa-key me-1"></i> Qabso Qolka {{ rm.room_number }} (Book Now)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 border border-secondary border-opacity-25 rounded" style="background: rgba(15, 23, 42, 0.6);">
+                <i class="fa-solid fa-hotel text-gold fs-1 mb-3 opacity-50"></i>
+                <h5 class="text-white fw-bold">Dhammaan qolalka hadda waa la degan yahay (Fully Booked)</h5>
+                <p class="text-muted small">Fadlan la xiriir soo dhawaynta (+252 61 555-0100) si aad u hesho ballan hore.</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Resort Amenities -->
+    <section class="py-4" id="amenities" style="background: #0d1322;">
+        <div class="container">
+            <div class="text-center mb-4">
+                <span class="text-gold text-uppercase fw-bold" style="letter-spacing: 0.12em; font-size: 0.72rem;">The Ultimate Experience</span>
+                <h3 class="fw-bold serif-gold mt-1" style="font-size: 1.8rem;">Exclusive Resort Amenities</h3>
+                <div class="mx-auto bg-gold" style="width: 45px; height: 2px; border-radius: 2px;"></div>
+            </div>
+
+            <div class="row g-3 text-center">
+                <div class="col-md-3 col-6">
+                    <div class="card-luxury p-3 h-100">
+                        <div class="stat-icon bg-gold bg-opacity-10 text-gold mx-auto mb-2" style="width: 46px; height: 46px; border-radius: 50%;">
+                            <i class="fa-solid fa-water fs-5"></i>
+                        </div>
+                        <h6 class="fw-bold text-light mb-1" style="font-size: 0.95rem;">Private Beach Club</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.78rem; line-height: 1.4;">Direct access to private white sands and luxury cabanas.</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card-luxury p-3 h-100">
+                        <div class="stat-icon bg-gold bg-opacity-10 text-gold mx-auto mb-2" style="width: 46px; height: 46px; border-radius: 50%;">
+                            <i class="fa-solid fa-spa fs-5"></i>
+                        </div>
+                        <h6 class="fw-bold text-light mb-1" style="font-size: 0.95rem;">Luxury Spa & Wellness</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.78rem; line-height: 1.4;">Therapeutic deep massages, steam saunas, and facials.</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card-luxury p-3 h-100">
+                        <div class="stat-icon bg-gold bg-opacity-10 text-gold mx-auto mb-2" style="width: 46px; height: 46px; border-radius: 50%;">
+                            <i class="fa-solid fa-car fs-5"></i>
+                        </div>
+                        <h6 class="fw-bold text-light mb-1" style="font-size: 0.95rem;">VIP Airport Chauffeur</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.78rem; line-height: 1.4;">Armored luxury Suburban transfers from Aden Adde.</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card-luxury p-3 h-100">
+                        <div class="stat-icon bg-gold bg-opacity-10 text-gold mx-auto mb-2" style="width: 46px; height: 46px; border-radius: 50%;">
+                            <i class="fa-solid fa-wifi fs-5"></i>
+                        </div>
+                        <h6 class="fw-bold text-light mb-1" style="font-size: 0.95rem;">Dedicated Gigabit Fiber</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.78rem; line-height: 1.4;">Ultra high-speed WiFi for international corporate guests.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Guest Testimonials -->
+    <section class="py-4" id="reviews">
+        <div class="container">
+            <div class="text-center mb-4">
+                <span class="text-gold text-uppercase fw-bold" style="letter-spacing: 0.12em; font-size: 0.72rem;">Guest Impressions</span>
+                <h3 class="fw-bold serif-gold mt-1" style="font-size: 1.8rem;">What Our Guests Say</h3>
+                <div class="mx-auto bg-gold" style="width: 45px; height: 2px; border-radius: 2px;"></div>
+            </div>
+
+            <div class="row g-3">
+                {% for r in reviews %}
+                <div class="col-md-6">
+                    <div class="card-luxury p-3 h-100">
+                        <div class="d-flex text-warning mb-1" style="font-size: 0.75rem;">
+                            {% for i in range(r.rating) %}
+                            <i class="fa-solid fa-star me-1"></i>
+                            {% endfor %}
+                        </div>
+                        <h6 class="fw-bold text-light mb-1" style="font-size: 0.92rem;">{{ r.title or 'Exceptional Stay' }}</h6>
+                        <p class="text-muted fst-italic mb-2" style="font-size: 0.8rem; line-height: 1.45;">"{{ r.comment }}"</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-gold text-white fw-bold d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 0.75rem;">
+                                {{ r.guest.full_name[:1] if r.guest else 'G' }}
+                            </div>
+                            <div>
+                                <strong class="text-light" style="font-size: 0.82rem;">{{ r.guest.full_name if r.guest else 'Verified Guest' }}</strong>
+                                <div class="text-muted" style="font-size: 0.65rem;">Verified In-House Stay</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         ROYAL DELIVERY SERVICE SECTION
+         ==================================================== -->
+    <section class="py-5" id="delivery" style="background: linear-gradient(135deg, #0a0f1d 0%, #111827 60%, #1a0a00 100%); border-top: 1px solid rgba(217,119,6,0.25); border-bottom: 1px solid rgba(217,119,6,0.25);">
+        <div class="container">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-6">
+                    <span class="text-gold text-uppercase fw-bold" style="letter-spacing: 0.14em; font-size: 0.72rem;"><i class="fa-solid fa-truck-fast me-1"></i> Express In-Suite Delivery</span>
+                    <h3 class="fw-bold serif-gold mt-2 mb-3" style="font-size: 2rem; line-height: 1.25;">Royal Delivery Service — Anything, Anywhere On Property</h3>
+                    <p class="text-light mb-4" style="font-size: 0.95rem; line-height: 1.7; opacity: 0.9;">
+                        Indulge in The Grand Horizon's legendary in-suite and on-property delivery experience. From Michelin-level gourmet cuisine to premium beverages, fresh linens, and amenity kits — delivered directly to your door within <strong class="text-gold">30 minutes</strong>, 24 hours a day.
+                    </p>
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(217,119,6,0.15);color:#f59e0b;flex-shrink:0;">
+                                    <i class="fa-solid fa-utensils"></i>
+                                </div>
+                                <span class="text-light" style="font-size: 0.83rem;">Gourmet Room Dining</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(217,119,6,0.15);color:#f59e0b;flex-shrink:0;">
+                                    <i class="fa-solid fa-wine-glass"></i>
+                                </div>
+                                <span class="text-light" style="font-size: 0.83rem;">Premium Beverages</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(217,119,6,0.15);color:#f59e0b;flex-shrink:0;">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <span class="text-light" style="font-size: 0.83rem;">30-Min Guaranteed</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(217,119,6,0.15);color:#f59e0b;flex-shrink:0;">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <span class="text-light" style="font-size: 0.83rem;">Live Order Tracking</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('guest_portal.delivery_page') }}" class="btn btn-gold fw-bold px-4 py-2" style="font-size: 0.88rem;">
+                            <i class="fa-solid fa-truck-fast me-2"></i> Order Now
+                        </a>
+                        <a href="{{ url_for('guest_portal.delivery_page') }}#trackOrder" class="btn btn-outline-gold px-4 py-2" style="font-size: 0.88rem;">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i> Track My Order
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="card-luxury p-3 text-center h-100" style="border: 1px solid rgba(217,119,6,0.3);">
+                                <i class="fa-solid fa-bowl-food fs-2 text-gold mb-2"></i>
+                                <h6 class="fw-bold text-light mb-1" style="font-size: 0.9rem;">Breakfast Hamper</h6>
+                                <p class="text-muted mb-2" style="font-size: 0.75rem;">Freshly prepared each morning. Somali tea, flatbreads, eggs & more.</p>
+                                <span class="text-gold fw-bold" style="font-size: 0.82rem;">From $18.00</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card-luxury p-3 text-center h-100" style="border: 1px solid rgba(217,119,6,0.3);">
+                                <i class="fa-solid fa-champagne-glasses fs-2 text-gold mb-2"></i>
+                                <h6 class="fw-bold text-light mb-1" style="font-size: 0.9rem;">Romance Package</h6>
+                                <p class="text-muted mb-2" style="font-size: 0.75rem;">Rose petals, candles, premium chocolate & sparkling drinks.</p>
+                                <span class="text-gold fw-bold" style="font-size: 0.82rem;">From $65.00</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card-luxury p-3 text-center h-100" style="border: 1px solid rgba(217,119,6,0.3);">
+                                <i class="fa-solid fa-pizza-slice fs-2 text-gold mb-2"></i>
+                                <h6 class="fw-bold text-light mb-1" style="font-size: 0.9rem;">Late Night Feast</h6>
+                                <p class="text-muted mb-2" style="font-size: 0.75rem;">Available midnight to 4AM. Grills, snacks & hot beverages.</p>
+                                <span class="text-gold fw-bold" style="font-size: 0.82rem;">From $24.00</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card-luxury p-3 text-center h-100" style="border: 1px solid rgba(217,119,6,0.3);">
+                                <i class="fa-solid fa-shirt fs-2 text-gold mb-2"></i>
+                                <h6 class="fw-bold text-light mb-1" style="font-size: 0.9rem;">Laundry & Essentials</h6>
+                                <p class="text-muted mb-2" style="font-size: 0.75rem;">Express press, toiletries, adapters, and curated amenity kits.</p>
+                                <span class="text-gold fw-bold" style="font-size: 0.82rem;">From $10.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Public Online Booking Modal -->
+    <div class="modal fade" id="onlineBookModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content card-luxury text-light">
+                <div class="modal-header border-secondary border-opacity-25 py-2">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Complete Your Reservation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('guest_portal.book_online') }}" method="POST">
+                    <div class="modal-body p-3">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Suite Type</label>
+                                <select name="room_type_id" id="modalRoomTypeSelect" class="form-select form-select-sm" required>
+                                    {% for t in room_types %}
+                                    <option value="{{ t.id }}">{{ t.name }} (${{ "{:,.2f}".format(t.base_price) }} / nt)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" style="font-size: 0.78rem;">Check-in Date</label>
+                                <input type="date" name="check_in" value="{{ checkin_default }}" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" style="font-size: 0.78rem;">Check-out Date</label>
+                                <input type="date" name="check_out" value="{{ checkout_default }}" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">First Name</label>
+                                <input type="text" name="first_name" class="form-control form-control-sm" placeholder="Enter your first name (e.g. Hassan)" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Last Name</label>
+                                <input type="text" name="last_name" class="form-control form-control-sm" placeholder="Enter your last name (e.g. Warsame)" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Email Address</label>
+                                <input type="email" name="email" class="form-control form-control-sm" placeholder="Enter your email (e.g. hassan@example.com)" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Phone Number</label>
+                                <input type="text" name="phone" class="form-control form-control-sm" placeholder="Enter phone number (e.g. +252 61 5000000)" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Promo Code (Optional)</label>
+                                <input type="text" name="promo_code" class="form-control form-control-sm" placeholder="Enter promo code (e.g. WELCOME10)">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Number of Guests (Adults)</label>
+                                <input type="number" name="adults" min="1" max="6" value="1" class="form-control form-control-sm" placeholder="1">
+                            </div>
+                            <!-- Passport & ID Capture for Express Check-in -->
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">ID / Document Type</label>
+                                <select name="id_type" class="form-select form-select-sm">
+                                    <option value="Passport">Passport (Baasaboor)</option>
+                                    <option value="National ID">National ID (Aqoonsi Qaran)</option>
+                                    <option value="Driver License">Driver License</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">ID / Passport Number</label>
+                                <input type="text" name="id_number" class="form-control form-control-sm" placeholder="e.g. NID-SO-9921 or P-009218">
+                            </div>
+                            <div class="col-12">
+                                <div class="p-2.5 rounded bg-dark border border-secondary border-opacity-50">
+                                    <label class="form-label d-flex justify-content-between align-items-center mb-1 text-gold fw-semibold" style="font-size: 0.76rem;">
+                                        <span><i class="fa-solid fa-passport me-1"></i> Upload Passport / ID Photo (Ikhtiyaari - Express Check-In)</span>
+                                        <span class="badge bg-gold text-dark" style="font-size: 0.65rem;">Contactless</span>
+                                    </label>
+                                    <input type="file" name="id_photo" class="form-control form-control-sm bg-black text-light border-secondary" accept="image/*,application/pdf">
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">
+                                        Soo geli sawirka baasaboorkaaga si marka aad hotelka timaado aad u hesho Express Check-in adigoon saf gelin!
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 0.78rem;">Special Preferences / Requests</label>
+                                <textarea name="special_requests" class="form-control form-control-sm" rows="2" placeholder="Enter any special requests (e.g. Quiet room, ocean view, late checkout)..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary border-opacity-25 py-2">
+                        <button type="button" class="btn btn-secondary btn-sm py-1" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-gold btn-sm px-3 py-1 fw-bold">Confirm Booking</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (High Contrast Luxury Styling) -->
+    <footer class="py-5" style="background: #091224; border-top: 2px solid #d4af37;">
+        <div class="container">
+            <div class="row g-4 justify-content-between">
+                <div class="col-lg-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <img src="{{ url_for('static', filename='img/hotel_logo.jpg') }}" alt="Logo" class="rounded border border-warning" style="width: 32px; height: 32px; object-fit: cover;">
+                        <h5 class="serif-gold fw-bold mb-0" style="font-size: 1.15rem;">{{ hotel_name }}</h5>
+                    </div>
+                    <p class="text-light mb-3" style="font-size: 0.82rem; opacity: 0.85;">{{ hotel_tagline }}</p>
+                    <p class="text-light mb-1" style="font-size: 0.8rem;"><i class="fa-solid fa-location-dot me-2 text-gold"></i>{{ hotel_address }}</p>
+                    <p class="text-light mb-0" style="font-size: 0.8rem;"><i class="fa-solid fa-phone me-2 text-gold"></i>{{ hotel_phone }}</p>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="text-gold text-uppercase fw-bold mb-3" style="font-size: 0.82rem; letter-spacing: 0.08em;">Quick Links</h6>
+                    <ul class="list-unstyled mb-0" style="font-size: 0.84rem;">
+                        <li class="mb-2"><a href="#suites" class="text-white text-decoration-none hover-gold"><i class="fa-solid fa-angle-right me-1 text-gold"></i> Royal Suites & Rates</a></li>
+                        <li class="mb-2"><a href="{{ url_for('guest_portal.my_bookings') }}" class="text-white text-decoration-none hover-gold"><i class="fa-solid fa-angle-right me-1 text-gold"></i> Lookup My Reservation</a></li>
+                        <li class="mb-2"><a href="{{ url_for('guest_portal.delivery_page') }}" class="text-white text-decoration-none hover-gold"><i class="fa-solid fa-angle-right me-1 text-gold"></i> Room Delivery Service</a></li>
+                        <li class="mb-2"><a href="{{ url_for('auth.login') }}" class="text-white text-decoration-none hover-gold"><i class="fa-solid fa-angle-right me-1 text-gold"></i> Staff & Admin Portal</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="text-gold text-uppercase fw-bold mb-3" style="font-size: 0.82rem; letter-spacing: 0.08em;">Accepted Payment Channels</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge px-3 py-2 text-white fw-bold" style="background:#1e293b; border:1px solid #d97706; font-size:0.75rem;">EVC Plus</span>
+                        <span class="badge px-3 py-2 text-white fw-bold" style="background:#1e293b; border:1px solid #d97706; font-size:0.75rem;">Zaad Service</span>
+                        <span class="badge px-3 py-2 text-white fw-bold" style="background:#1e293b; border:1px solid #d97706; font-size:0.75rem;">Sahal Pay</span>
+                        <span class="badge px-3 py-2 text-white fw-bold" style="background:#1e293b; border:1px solid #d97706; font-size:0.75rem;">Visa / MasterCard</span>
+                        <span class="badge px-3 py-2 text-white fw-bold" style="background:#1e293b; border:1px solid #d97706; font-size:0.75rem;">Bank Wire</span>
+                    </div>
+                </div>
+            </div>
+            <div class="border-top border-secondary border-opacity-25 pt-3 mt-4 text-center text-light" style="font-size: 0.78rem; opacity: 0.75;">
+                &copy; 2026 <strong class="text-gold">{{ hotel_name }}</strong>. All rights reserved. Oceanfront Luxury in Mogadishu, Somalia.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function selectSuiteForBooking(typeId, name, price) {
+            const select = document.getElementById('modalRoomTypeSelect');
+            if (select) {
+                select.value = typeId;
+                const modal = new bootstrap.Modal(document.getElementById('onlineBookModal'));
+                modal.show();
+            }
+        }
+
+        function filterRoomCards(category, btn) {
+            document.querySelectorAll('.room-filter-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            if (btn) btn.classList.add('active');
+
+            const items = document.querySelectorAll('.room-card-item');
+            items.forEach(el => {
+                if (category === 'all' || el.getAttribute('data-type') === category) {
+                    el.style.display = '';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

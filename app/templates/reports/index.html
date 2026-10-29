@@ -1,0 +1,1095 @@
+{% extends "base.html" %}
+
+{% block title %}System Business Intelligence & Comprehensive Reports | The Grand Horizon HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Executive White 4-Master KPI Cards */
+    .master-kpi-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.35rem 1.5rem;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+        color: #0f172a !important;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .master-kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    }
+    .master-kpi-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+    .master-kpi-val {
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 0.35rem;
+    }
+    .master-kpi-desc {
+        font-size: 0.76rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .master-kpi-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    /* Report Modern Chart Card - Clean Executive White with Soft Lines */
+    .report-chart-card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .report-chart-card:hover {
+        border-color: #94a3b8 !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.09);
+    }
+    .report-chart-card h6 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #0f172a !important;
+        margin-bottom: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .chart-container-box {
+        position: relative;
+        height: 220px;
+        width: 100%;
+    }
+    .chart-container-box-lg {
+        position: relative;
+        height: 270px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header & Filter Controls -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-gold">Home</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Reports & Business Intelligence</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1 text-white">
+            <i class="fa-solid fa-chart-line text-gold me-2"></i>Executive System Reports & Analytics
+        </h2>
+        <p class="text-muted small mb-0">Cross-departmental hotel performance metrics: revenue yields, occupancy trajectory, cost ratios, and operational telemetry.</p>
+    </div>
+
+    <!-- Filters & Export Buttons -->
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('reports.index', period='today') }}" class="btn btn-outline-secondary {% if period == 'today' %}active{% endif %}">Today</a>
+            <a href="{{ url_for('reports.index', period='week') }}" class="btn btn-outline-secondary {% if period == 'week' %}active{% endif %}">This Week</a>
+            <a href="{{ url_for('reports.index', period='month') }}" class="btn btn-outline-secondary {% if period == 'month' or not period %}active{% endif %}">This Month</a>
+            <a href="{{ url_for('reports.index', period='year') }}" class="btn btn-outline-secondary {% if period == 'year' %}active{% endif %}">This Year</a>
+        </div>
+        <a href="{{ url_for('reports.export_excel') }}" class="btn btn-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+        </a>
+        <a href="{{ url_for('reports.export_csv') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+        </a>
+    </div>
+</div>
+
+<!-- ============================================================
+     4 PRIMARY MASTER KPI CARDS (CRISP WHITE CARDS)
+     Summarizing the Whole Hotel Management System
+     ============================================================ -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Total Gross Revenue -->
+    <div class="col-xl-3 col-md-6">
+        <div class="master-kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="master-kpi-title"><i class="fa-solid fa-dollar-sign text-success me-1"></i> Total Gross Revenue</div>
+                    <div class="master-kpi-val text-success">${{ "{:,.2f}".format(total_revenue) }}</div>
+                    <div class="master-kpi-desc">Period Inflow Receipts</div>
+                </div>
+                <div class="master-kpi-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-vault"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Payments Verified</span>
+                <span class="badge bg-success bg-opacity-25 text-success">Active Receipts</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Hotel Average Occupancy Rate -->
+    <div class="col-xl-3 col-md-6">
+        <div class="master-kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="master-kpi-title"><i class="fa-solid fa-bed text-gold me-1"></i> Property Occupancy Rate</div>
+                    <div class="master-kpi-val text-gold">{{ occupancy_pct }}%</div>
+                    <div class="master-kpi-desc">RevPAR: ${{ "{:,.2f}".format(revpar) }}</div>
+                </div>
+                <div class="master-kpi-icon" style="background: rgba(217, 119, 6, 0.12); color: #d97706;">
+                    <i class="fa-solid fa-hotel"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>ADR Yield Index</span>
+                <span class="badge bg-warning bg-opacity-25 text-warning">${{ "{:,.2f}".format(adr) }} ADR</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Total Guest Stays / Bookings -->
+    <div class="col-xl-3 col-md-6">
+        <div class="master-kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="master-kpi-title"><i class="fa-solid fa-calendar-check text-primary me-1"></i> Total Guest Stays</div>
+                    <div class="master-kpi-val text-primary">{{ total_bookings }}</div>
+                    <div class="master-kpi-desc">Completed & Active Reservations</div>
+                </div>
+                <div class="master-kpi-icon" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Guest CRM Volume</span>
+                <span class="badge bg-primary bg-opacity-25 text-primary">In-House Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Net Operating Profit -->
+    <div class="col-xl-3 col-md-6">
+        <div class="master-kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="master-kpi-title"><i class="fa-solid fa-scale-balanced text-info me-1"></i> Net Operating Profit</div>
+                    <div class="master-kpi-val {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ "{:,.2f}".format(net_profit) }}
+                    </div>
+                    <div class="master-kpi-desc">Expenses: ${{ "{:,.2f}".format(total_expenses) }}</div>
+                </div>
+                <div class="master-kpi-icon" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4;">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Operating Margin</span>
+                <span class="badge bg-info bg-opacity-25 text-info">Profit Yield</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     20 MODERN BUSINESS INTELLIGENCE CHARTS
+     Arranged in Clean, Responsive Multi-Row Sections
+     ============================================================ -->
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-chart-pie text-gold me-2"></i>Comprehensive Analytics Suite (20 Visual Charts)
+        </h5>
+        <span class="badge bg-gold px-2.5 py-1 text-dark fw-bold">Live Visual Telemetry</span>
+    </div>
+
+    <!-- ROW 1: Financial & Yield Trajectory (Charts 1, 2, 3) -->
+    <div class="row g-3 mb-3">
+        <!-- Chart 1: 12-Month Revenue vs Target -->
+        <div class="col-lg-5">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-chart-column text-gold me-1.5"></i> Chart 1: Annual Revenue vs Target (12 Mo)</span>
+                    <span class="badge bg-secondary">Target vs Actual</span>
+                </h6>
+                <div class="chart-container-box-lg">
+                    <canvas id="r_chart1_annualRev"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 2: Expenses vs Net Profit -->
+        <div class="col-lg-4">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-scale-balanced text-success me-1.5"></i> Chart 2: Operating Costs vs Profit</span>
+                    <span class="badge bg-success bg-opacity-25 text-success">Net Yield</span>
+                </h6>
+                <div class="chart-container-box-lg">
+                    <canvas id="r_chart2_expProfit"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 3: RevPAR Monthly Trajectory -->
+        <div class="col-lg-3">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-wave-square text-info me-1.5"></i> Chart 3: RevPAR Trajectory</span>
+                    <span class="badge bg-info bg-opacity-25 text-info">Per Room ($)</span>
+                </h6>
+                <div class="chart-container-box-lg">
+                    <canvas id="r_chart3_revpar"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 2: Room Revenue & Booking Dynamics (Charts 4, 5, 6, 7) -->
+    <div class="row g-3 mb-3">
+        <!-- Chart 4: Room Yield by Suite Type -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-pie-chart text-gold me-1.5"></i> Chart 4: Suite Yield Contribution</span>
+                    <span class="badge bg-secondary">% Share</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart4_yield"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 5: 12-Month Occupancy Rate % -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-bed text-warning me-1.5"></i> Chart 5: Monthly Occupancy %</span>
+                    <span class="badge bg-warning bg-opacity-25 text-warning">Historical %</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart5_monthlyOcc"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 6: Booking Lead Time Window -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-regular fa-calendar-days text-primary me-1.5"></i> Chart 6: Advance Lead Time</span>
+                    <span class="badge bg-primary bg-opacity-25 text-primary">Days Ahead</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart6_leadTime"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 7: Booking Conversion Pipeline -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-filter text-success me-1.5"></i> Chart 7: Booking Pipeline</span>
+                    <span class="badge bg-success bg-opacity-25 text-success">Conversion</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart7_pipeline"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 3: Customer Value & F&B Operations (Charts 8, 9, 10, 11) -->
+    <div class="row g-3 mb-3">
+        <!-- Chart 8: Guest Lifetime Value by VIP Tier -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-crown text-warning me-1.5"></i> Chart 8: Guest LTV by VIP Tier</span>
+                    <span class="badge bg-warning bg-opacity-25 text-warning">Average ($)</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart8_ltv"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 9: F&B Dining Sales by Meal Period -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-utensils text-danger me-1.5"></i> Chart 9: F&B Meal Sales</span>
+                    <span class="badge bg-danger bg-opacity-25 text-danger">Dining Yield</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart9_dining"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 10: Cash Inflow vs Outflow -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-cash-register text-success me-1.5"></i> Chart 10: Cash Flow Drawer</span>
+                    <span class="badge bg-success bg-opacity-25 text-success">In vs Out</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart10_cashflow"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 11: Payment Gateway Share -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-money-check text-info me-1.5"></i> Chart 11: Payment Channels</span>
+                    <span class="badge bg-info bg-opacity-25 text-info">Mobile / Card</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart11_gateways"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 4: Service Quality & Staff Allocation (Charts 12, 13, 14, 15) -->
+    <div class="row g-3 mb-3">
+        <!-- Chart 12: Housekeeping Cleaning Speed -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-broom text-gold me-1.5"></i> Chart 12: Room Cleaning Speed</span>
+                    <span class="badge bg-secondary">Minutes / Room</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart12_hkSpeed"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 13: Maintenance Resolution Speed -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-screwdriver-wrench text-danger me-1.5"></i> Chart 13: Ticket Turnaround</span>
+                    <span class="badge bg-danger bg-opacity-25 text-danger">Hours to Fix</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart13_mntSpeed"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 14: Inventory Velocity -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-boxes-stacked text-primary me-1.5"></i> Chart 14: Inventory Velocity</span>
+                    <span class="badge bg-primary bg-opacity-25 text-primary">Consumption</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart14_inventory"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 15: Staff Payroll & Headcount by Dept -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-user-tie text-info me-1.5"></i> Chart 15: Department Headcount</span>
+                    <span class="badge bg-info bg-opacity-25 text-info">Staff Ratio</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart15_staff"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 5: Guest Feedback & Predictive Projections (Charts 16, 17, 18, 19, 20) -->
+    <div class="row g-3">
+        <!-- Chart 16: Guest Review Rating Breakdown -->
+        <div class="col-lg-3 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-star text-warning me-1.5"></i> Chart 16: Guest Ratings</span>
+                    <span class="badge bg-warning bg-opacity-25 text-warning">1 to 5 Stars</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart16_reviews"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 17: Weekend vs Weekday Demand -->
+        <div class="col-lg-2 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-sun text-gold me-1.5"></i> Chart 17: Weekend Ratio</span>
+                    <span class="badge bg-secondary">Demand</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart17_weekend"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 18: Repeat vs First-Time Guests -->
+        <div class="col-lg-2 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-repeat text-success me-1.5"></i> Chart 18: Repeat Guest Ratio</span>
+                    <span class="badge bg-success bg-opacity-25 text-success">Retention</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart18_repeat"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 19: Diesel Generator Energy Costs -->
+        <div class="col-lg-2 col-md-6">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-bolt text-danger me-1.5"></i> Chart 19: Fuel & Power</span>
+                    <span class="badge bg-danger bg-opacity-25 text-danger">Monthly ($)</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart19_energy"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 20: 30-Day Forward Revenue Forecast -->
+        <div class="col-lg-3 col-md-12">
+            <div class="report-chart-card">
+                <h6>
+                    <span><i class="fa-solid fa-binoculars text-primary me-1.5"></i> Chart 20: 30-Day Forward Forecast</span>
+                    <span class="badge bg-primary bg-opacity-25 text-primary">Predictive AI</span>
+                </h6>
+                <div class="chart-container-box">
+                    <canvas id="r_chart20_forecast"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js 4.4 from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+    // Universal Chart styling defaults - Clean Executive Contrast
+    Chart.defaults.color = '#334155';
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.font.size = 11;
+    const rGrid = '#e2e8f0';
+
+    // Chart 1: Annual Revenue vs Target (KEPT AS REQUESTED)
+    new Chart(document.getElementById('r_chart1_annualRev'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart1_labels|tojson }},
+            datasets: [
+                {
+                    label: 'Actual Revenue ($)',
+                    data: {{ chart1_rev|tojson }},
+                    backgroundColor: '#d97706',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Target Budget ($)',
+                    data: {{ chart1_target|tojson }},
+                    type: 'line',
+                    borderColor: '#38bdf8',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', labels: { boxWidth: 10, color: '#334155' } } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // Chart 2: Expenses vs Profit (KEPT AS REQUESTED)
+    new Chart(document.getElementById('r_chart2_expProfit'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart1_labels|tojson }},
+            datasets: [
+                {
+                    label: 'Net Profit ($)',
+                    data: {{ chart2_profit|tojson }},
+                    backgroundColor: '#10b981',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Operating Expenses ($)',
+                    data: {{ chart2_exp|tojson }},
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', labels: { boxWidth: 10, color: '#334155' } } },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { color: '#64748b' } },
+                y: { stacked: true, grid: { color: rGrid }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // Chart 3: RevPAR Trajectory (KEPT AS REQUESTED)
+    new Chart(document.getElementById('r_chart3_revpar'), {
+        type: 'line',
+        data: {
+            labels: {{ chart1_labels|tojson }},
+            datasets: [{
+                label: 'RevPAR ($)',
+                data: {{ chart3_revpar|tojson }},
+                borderColor: '#06b6d4',
+                backgroundColor: 'rgba(6, 182, 212, 0.15)',
+                borderWidth: 2.5,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 4: Suite Yield Contribution (Modern Segmented Luxury Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart4_yield'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ chart4_yield|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart4_yield|tojson }}),
+                backgroundColor: ['#d97706', '#0284c7', '#10b981', '#8b5cf6', '#ec4899'],
+                hoverBackgroundColor: ['#b45309', '#0369a1', '#059669', '#7c3aed', '#db2777'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '62%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 5: Monthly Occupancy Trajectory % (Spline Wave with Amber Gradient Fill)
+    // -------------------------------------------------------------
+    const rCtx5 = document.getElementById('r_chart5_monthlyOcc').getContext('2d');
+    const rGrad5 = rCtx5.createLinearGradient(0, 0, 0, 220);
+    rGrad5.addColorStop(0, 'rgba(217, 119, 6, 0.28)');
+    rGrad5.addColorStop(1, 'rgba(217, 119, 6, 0.0)');
+
+    new Chart(rCtx5, {
+        type: 'line',
+        data: {
+            labels: {{ chart1_labels|tojson }},
+            datasets: [{
+                label: 'Occupancy %',
+                data: {{ chart5_occ|tojson }},
+                borderColor: '#d97706',
+                backgroundColor: rGrad5,
+                borderWidth: 3,
+                tension: 0.42,
+                fill: true,
+                pointBackgroundColor: '#b45309',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` Occupancy: ${ctx.parsed.y}%` } }
+            },
+            scales: {
+                y: { min: 0, max: 100, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => v + '%' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 6: Lead Time Window (Modern Indigo Vertical Rounded Bars)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart6_leadTime'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ chart6_lead_time|tojson }}),
+            datasets: [{
+                label: '% Bookings',
+                data: Object.values({{ chart6_lead_time|tojson }}),
+                backgroundColor: '#6366f1',
+                hoverBackgroundColor: '#4f46e5',
+                borderRadius: 6,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => v + '%' } },
+                x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 7: Booking Pipeline Conversion (Segmented High-Contrast Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart7_pipeline'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ chart7_conversion|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart7_conversion|tojson }}),
+                backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#ef4444'],
+                hoverBackgroundColor: ['#059669', '#0369a1', '#d97706', '#dc2626'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '64%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 8: Guest Lifetime Value - LTV (Amber Gradient Vertical Bars)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart8_ltv'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ chart8_ltv|tojson }}),
+            datasets: [{
+                label: 'Avg Lifetime Value ($)',
+                data: Object.values({{ chart8_ltv|tojson }}),
+                backgroundColor: ['#d97706', '#f59e0b', '#0284c7', '#10b981'],
+                borderRadius: 6,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` LTV: $${Number(ctx.parsed.y).toFixed(2)}` } }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => '$' + v } },
+                x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 9: F&B Meal Sales Distribution (Vibrant Culinary Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart9_dining'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ chart9_dining|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart9_dining|tojson }}),
+                backgroundColor: ['#f59e0b', '#10b981', '#0284c7', '#ec4899'],
+                hoverBackgroundColor: ['#d97706', '#059669', '#0369a1', '#db2777'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '60%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 10: Cashflow In vs Out (Grouped Vertical Bars with Contrast Caps)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart10_cashflow'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart10_days|tojson }},
+            datasets: [
+                {
+                    label: 'Inflow ($)',
+                    data: {{ chart10_cash_in|tojson }},
+                    backgroundColor: '#10b981',
+                    borderRadius: 5,
+                    barThickness: 16
+                },
+                {
+                    label: 'Outflow ($)',
+                    data: {{ chart10_cash_out|tojson }},
+                    backgroundColor: '#ef4444',
+                    borderRadius: 5,
+                    barThickness: 16
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', labels: { boxWidth: 12, color: '#334155', font: { weight: '600' } } } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => '$' + v } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 11: Payment Gateways (Modern Polar Area with Vivid Palette)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart11_gateways'), {
+        type: 'polarArea',
+        data: {
+            labels: Object.keys({{ chart11_gateways|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart11_gateways|tojson }}),
+                backgroundColor: [
+                    'rgba(217, 119, 6, 0.82)',
+                    'rgba(2, 132, 199, 0.82)',
+                    'rgba(16, 185, 129, 0.82)',
+                    'rgba(139, 92, 246, 0.82)',
+                    'rgba(239, 68, 68, 0.82)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 8, color: '#334155', font: { weight: '600' } } } },
+            scales: { r: { grid: { color: rGrid }, ticks: { display: false } } }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 12: Housekeeping Turnaround Speed (Horizontal Speed-Tiered Bars)
+    // -------------------------------------------------------------
+    const rHkValues = Object.values({{ chart12_hk_mins|tojson }});
+    new Chart(document.getElementById('r_chart12_hkSpeed'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ chart12_hk_mins|tojson }}),
+            datasets: [{
+                axis: 'y',
+                label: 'Minutes',
+                data: rHkValues,
+                backgroundColor: rHkValues.map(v => v <= 20 ? '#10b981' : v <= 30 ? '#f59e0b' : '#ef4444'),
+                borderRadius: 5,
+                barThickness: 18
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b' } },
+                y: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 13: Maintenance Resolution Speed (Alert Segmented Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart13_mntSpeed'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ chart13_mnt_speed|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart13_mnt_speed|tojson }}),
+                backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#ef4444'],
+                hoverBackgroundColor: ['#059669', '#0369a1', '#d97706', '#dc2626'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '64%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 14: Inventory Velocity (Violet Rounded Vertical Bars)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart14_inventory'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ chart14_inventory|tojson }}),
+            datasets: [{
+                label: 'Depletion Rate (%)',
+                data: Object.values({{ chart14_inventory|tojson }}),
+                backgroundColor: '#8b5cf6',
+                hoverBackgroundColor: '#7c3aed',
+                borderRadius: 6,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { min: 0, max: 100, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => v + '%' } },
+                x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 15: Staff Headcount by Department (Modern Multi-Tone Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart15_staff'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ chart15_staff|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart15_staff|tojson }}),
+                backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                hoverBackgroundColor: ['#0369a1', '#059669', '#d97706', '#dc2626', '#7c3aed'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 8, color: '#334155', font: { weight: '600' } } } },
+            cutout: '58%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 16: Guest Review Rating Sentiment (Gold Horizon Rating Bars)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart16_reviews'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({{ chart16_reviews|tojson }}),
+            datasets: [{
+                label: '% Share',
+                data: Object.values({{ chart16_reviews|tojson }}),
+                backgroundColor: ['#10b981', '#059669', '#f59e0b', '#f97316', '#ef4444'],
+                borderRadius: 5,
+                barThickness: 22
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => v + '%' } },
+                x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 17: Weekend vs Weekday Yield (High-Contrast Dual Ring)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart17_weekend'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ chart17_weekend_weekday|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart17_weekend_weekday|tojson }}),
+                backgroundColor: ['#0284c7', '#d97706'],
+                hoverBackgroundColor: ['#0369a1', '#b45309'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '66%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 18: Repeat vs New Guests Ratio (Loyalty Doughnut)
+    // -------------------------------------------------------------
+    new Chart(document.getElementById('r_chart18_repeat'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys({{ chart18_repeat|tojson }}),
+            datasets: [{
+                data: Object.values({{ chart18_repeat|tojson }}),
+                backgroundColor: ['#10b981', '#64748b'],
+                hoverBackgroundColor: ['#059669', '#475569'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, color: '#334155', font: { weight: '600' } } } },
+            cutout: '66%'
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 19: Energy & Generator Diesel Expenditure (Crimson Spline Area)
+    // -------------------------------------------------------------
+    const rCtx19 = document.getElementById('r_chart19_energy').getContext('2d');
+    const rGrad19 = rCtx19.createLinearGradient(0, 0, 0, 220);
+    rGrad19.addColorStop(0, 'rgba(239, 68, 68, 0.28)');
+    rGrad19.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+
+    new Chart(rCtx19, {
+        type: 'line',
+        data: {
+            labels: {{ chart1_labels|tojson }},
+            datasets: [{
+                label: 'Diesel Fuel ($)',
+                data: {{ chart19_energy|tojson }},
+                borderColor: '#dc2626',
+                backgroundColor: rGrad19,
+                borderWidth: 2.8,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#b91c1c',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` Fuel Cost: $${Number(ctx.parsed.y).toFixed(2)}` } }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => '$' + v } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Chart 20: 30-Day Forward Revenue Forecast (Electric Cyan Area Curve)
+    // -------------------------------------------------------------
+    const rCtx20 = document.getElementById('r_chart20_forecast').getContext('2d');
+    const rGrad20 = rCtx20.createLinearGradient(0, 0, 0, 220);
+    rGrad20.addColorStop(0, 'rgba(2, 132, 199, 0.28)');
+    rGrad20.addColorStop(1, 'rgba(2, 132, 199, 0.0)');
+
+    new Chart(rCtx20, {
+        type: 'line',
+        data: {
+            labels: {{ chart20_days|tojson }},
+            datasets: [{
+                label: 'Projected Revenue ($)',
+                data: {{ chart20_forecast|tojson }},
+                borderColor: '#0284c7',
+                backgroundColor: rGrad20,
+                borderWidth: 3,
+                tension: 0.42,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#0369a1',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` Projected: $${Number(ctx.parsed.y).toFixed(2)}` } }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: rGrid }, ticks: { color: '#64748b', callback: v => '$' + v } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            }
+        }
+    });
+</script>
+{% endblock %}

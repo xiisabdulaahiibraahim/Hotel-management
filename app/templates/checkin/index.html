@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Front Desk Operations | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Front Desk Operations</h2>
+        <p class="text-muted small mb-0">Today's guest arrivals, departures, key card assignments, and stays.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-light btn-sm px-3" onclick="window.print()">
+            <i class="fa-solid fa-print me-1.5"></i> Print Guest Manifest
+        </button>
+        <a href="{{ url_for('reports.export_csv') }}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fa-solid fa-file-csv me-1.5"></i> Export CSV
+        </a>
+        <a href="{{ url_for('rooms.status_board') }}" class="btn btn-outline-gold btn-sm px-3">
+            <i class="fa-solid fa-border-all me-1.5"></i> Status Board
+        </a>
+        <a href="{{ url_for('bookings.new') }}" class="btn btn-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-plus me-1.5"></i> Walk-In Booking
+        </a>
+    </div>
+</div>
+
+<!-- Arrivals & In-House Tabs -->
+<ul class="nav nav-tabs border-secondary border-opacity-25 mb-4" id="frontDeskTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active text-light fw-semibold" id="arrivals-tab" data-bs-toggle="tab" data-bs-target="#arrivals" type="button">
+            <i class="fa-solid fa-plane-arrival text-gold me-2"></i>Expected Arrivals 
+            <span class="badge bg-gold ms-1">{{ arrivals|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link text-light fw-semibold" id="inhouse-tab" data-bs-toggle="tab" data-bs-target="#inhouse" type="button">
+            <i class="fa-solid fa-bed text-primary me-2"></i>In-House Guests / Departures
+            <span class="badge bg-primary ms-1">{{ in_house|length }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="frontDeskTabContent">
+    <!-- Expected Arrivals -->
+    <div class="tab-pane fade show active" id="arrivals" role="tabpanel">
+        <div class="card-luxury p-4">
+            <h5 class="fw-bold mb-3">Today's Scheduled Arrivals ({{ today.strftime('%b %d, %Y') }})</h5>
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Guest Name</th>
+                            <th>Phone</th>
+                            <th>Reserved Rooms</th>
+                            <th>Dates</th>
+                            <th>Total</th>
+                            <th>Deposit</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in arrivals %}
+                        <tr>
+                            <td class="fw-bold text-gold">{{ b.booking_reference }}</td>
+                            <td class="fw-semibold">{{ b.guest.full_name if b.guest else 'Guest' }}</td>
+                            <td>{{ b.guest.phone if b.guest else '' }}</td>
+                            <td>
+                                {% for br in b.booking_rooms %}
+                                <span class="badge bg-secondary me-1">Room {{ br.room.room_number }}</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ b.check_in_date.strftime('%b %d') }} - {{ b.check_out_date.strftime('%b %d') }} ({{ b.nights_count }} Nts)</small>
+                            </td>
+                            <td class="fw-bold">${{ "{:,.2f}".format(b.total_amount) }}</td>
+                            <td class="text-success">${{ "{:,.2f}".format(b.paid_amount) }}</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <a href="{{ url_for('checkin.registration_card', booking_id=b.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Print Reception Card (Warqadda)">
+                                        <i class="fa-solid fa-file-signature"></i>
+                                    </a>
+                                    <a href="{{ url_for('checkin.checkin_guest', booking_id=b.id) }}" class="btn btn-sm btn-gold">
+                                        <i class="fa-solid fa-key me-1"></i> Check-in
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No pending arrivals scheduled for today.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-House Guests -->
+    <div class="tab-pane fade" id="inhouse" role="tabpanel">
+        <div class="card-luxury p-4">
+            <h5 class="fw-bold mb-3">Currently In-House Guests</h5>
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Guest Name</th>
+                            <th>Room(s)</th>
+                            <th>Key Card</th>
+                            <th>Check-in Date</th>
+                            <th>Due Out Date</th>
+                            <th>Folio Balance</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in in_house %}
+                        <tr>
+                            <td class="fw-bold text-gold">{{ b.booking_reference }}</td>
+                            <td class="fw-semibold">{{ b.guest.full_name if b.guest else 'Guest' }}</td>
+                            <td>
+                                {% for br in b.booking_rooms %}
+                                <span class="badge bg-danger me-1">Room {{ br.room.room_number }}</span>
+                                {% endfor %}
+                            </td>
+                            <td><code>{{ b.checkin_record.key_card_number if b.checkin_record else 'None' }}</code></td>
+                            <td><small>{{ b.check_in_date.strftime('%b %d') }}</small></td>
+                            <td>
+                                <small class="{% if b.check_out_date <= today %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                    {{ b.check_out_date.strftime('%b %d') }} {% if b.check_out_date <= today %}(Due Today){% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                {% if b.balance_due > 0 %}
+                                <span class="text-danger fw-bold">${{ "{:,.2f}".format(b.balance_due) }}</span>
+                                {% else %}
+                                <span class="text-success fw-bold">Settled</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#shiftRoomModal{{ b.id }}" title="Bedel Qolka (Room Shift)">
+                                        <i class="fa-solid fa-arrows-split-up-and-left me-1"></i> Bedel Qolka
+                                    </button>
+                                    <a href="{{ url_for('checkin.registration_card', booking_id=b.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Print Reception Card (Warqadda)">
+                                        <i class="fa-solid fa-file-signature"></i>
+                                    </a>
+                                    <a href="{{ url_for('checkin.checkout_guest', booking_id=b.id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Check-out
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No guests currently in-house.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     ROOM SHIFT MODALS (Outside Table)
+     ============================================================ -->
+{% for b in in_house %}
+<div class="modal fade" id="shiftRoomModal{{ b.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light border border-info border-opacity-50">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-arrows-split-up-and-left text-info me-2"></i>Qol-Beddelka Martida (Room Shift)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('checkin.shift_room', booking_id=b.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="p-3 rounded bg-black bg-opacity-30 border border-secondary border-opacity-25 mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Martida (Guest):</span>
+                            <strong class="text-white">{{ b.guest.full_name if b.guest else 'Guest' }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Booking Reference:</span>
+                            <span class="text-gold font-monospace">{{ b.booking_reference }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Qolka Hadda (Current Room):</span>
+                            {% for br in b.booking_rooms %}
+                            <span class="badge bg-danger">Room {{ br.room.room_number }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Dooro Qolka Cusub ee loo wareejinayo *</label>
+                        <select name="new_room_id" class="form-select bg-dark text-light border-secondary" required>
+                            <option value="">-- Dooro Qol Bannaan (Available Room) --</option>
+                            {% for r in available_rooms %}
+                            <option value="{{ r.id }}">
+                                Room {{ r.room_number }} (Floor {{ r.floor }}) &bull; {{ r.room_type.name if r.room_type else 'Room' }} - ${{ "{:,.2f}".format(r.room_type.base_price if r.room_type else 0) }}/night
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text text-muted" style="font-size:0.72rem;">Qolkii hore wuxuu si toos ah u noqonayaa <strong>Cleaning</strong>, shaqana waxaa loo dirayaa Housekeeping.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Sababta Qol-Beddelka (Reason for Room Shift) *</label>
+                        <select name="reason" class="form-select bg-dark text-light border-secondary" required>
+                            <option value="Guest Request (Dookh Martida)" selected>Guest Request (Dookh Martida)</option>
+                            <option value="Room Upgrade to Higher Category">Room Upgrade to Higher Category</option>
+                            <option value="AC / Electrical Maintenance">AC / Electrical Maintenance</option>
+                            <option value="Plumbing / Water Issue">Plumbing / Water Issue</option>
+                            <option value="Noise Complaint / Quiet Floor">Noise Complaint / Quiet Floor</option>
+                            <option value="Extended Stay Operational Relocation">Extended Stay Operational Relocation</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Lambarka Furaha Cusub (New Key Card Code)</label>
+                        <input type="text" name="key_card_number" class="form-control bg-dark text-light border-secondary" placeholder="tusaale: KC-204">
+                    </div>
+
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="adjust_rate" id="adjustRate{{ b.id }}" checked>
+                        <label class="form-check-label small text-light" for="adjustRate{{ b.id }}">
+                            Haddii qiimaha qolalka ku kala duwan yahay, biilka qolka (Folio) ku dar/ka jar faraqa.
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-info btn-sm px-3 fw-bold">
+                        <i class="fa-solid fa-check me-1"></i> Xaqiiji Qol-Beddelka
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

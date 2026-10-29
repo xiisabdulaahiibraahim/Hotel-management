@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}Room & Online Delivery Orders | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<style>
+    .table-compact td, .table-compact th {
+        padding: 5px 8px !important;
+        vertical-align: middle !important;
+    }
+    .kpi-mini-card {
+        padding: 6px 12px;
+        background: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+    <div>
+        <h2 class="h5 fw-bold mb-0 text-white">
+            <i class="fa-solid fa-truck-fast text-gold me-1.5"></i>Express Room &amp; Local Deliveries
+        </h2>
+        <span class="text-muted" style="font-size: 0.74rem;">Track live orders, dispatch couriers, and monitor food delivery statuses.</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('guest_portal.delivery_page') }}" target="_blank" class="btn btn-xs btn-outline-gold fw-bold py-1 px-2.5" style="font-size: 0.74rem;">
+            <i class="fa-solid fa-globe me-1"></i> Public Page
+        </a>
+        <button type="button" class="btn btn-xs btn-gold fw-bold py-1 px-2.5" style="font-size: 0.74rem;" data-bs-toggle="modal" data-bs-target="#newDeliveryModal">
+            <i class="fa-solid fa-plus-circle me-1"></i> + New Delivery
+        </button>
+    </div>
+</div>
+
+<!-- 5 Ultra-Compact Metric Cards (Single Slim Bar) -->
+<div class="row g-2 mb-2.5">
+    <div class="col-xl col-md-4 col-6">
+        <div class="kpi-mini-card" style="border-left: 3px solid #0f172a;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted fw-bold" style="font-size: 0.68rem;">Total Orders</span>
+                <span class="fw-bold" style="color: #0f172a; font-size: 1.05rem;">{{ total_deliveries }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-md-4 col-6">
+        <div class="kpi-mini-card" style="border-left: 3px solid #f59e0b;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted fw-bold" style="font-size: 0.68rem;">Pending</span>
+                <span class="fw-bold text-warning" style="font-size: 1.05rem;">{{ pending_count }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-md-4 col-6">
+        <div class="kpi-mini-card" style="border-left: 3px solid #0284c7;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted fw-bold" style="font-size: 0.68rem;">In Kitchen</span>
+                <span class="fw-bold text-info" style="font-size: 1.05rem;">{{ in_kitchen_count }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-md-6 col-6">
+        <div class="kpi-mini-card" style="border-left: 3px solid #8b5cf6;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted fw-bold" style="font-size: 0.68rem;">In Transit</span>
+                <span class="fw-bold" style="color: #8b5cf6; font-size: 1.05rem;">{{ in_transit_count }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-md-6 col-6">
+        <div class="kpi-mini-card" style="border-left: 3px solid #10b981;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted fw-bold" style="font-size: 0.68rem;">Revenue</span>
+                <span class="fw-bold text-success" style="font-size: 0.95rem;">${{ "{:,.2f}".format(total_delivery_revenue) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Table Card (Clean, Compact, Fully Visible) -->
+<div class="card-luxury p-2.5 mb-3">
+    <!-- Filter Tabs -->
+    <div class="d-flex justify-content-between align-items-center mb-2 pb-1.5 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('delivery.index') }}" class="btn btn-outline-secondary py-0.5 px-2 {% if not status_filter %}active{% endif %}" style="font-size:0.72rem;">
+                All ({{ total_deliveries }})
+            </a>
+            <a href="{{ url_for('delivery.index', status='Pending') }}" class="btn btn-outline-warning text-warning py-0.5 px-2 {% if status_filter == 'Pending' %}active{% endif %}" style="font-size:0.72rem;">
+                Pending ({{ pending_count }})
+            </a>
+            <a href="{{ url_for('delivery.index', status='In Kitchen') }}" class="btn btn-outline-info text-info py-0.5 px-2 {% if status_filter == 'In Kitchen' %}active{% endif %}" style="font-size:0.72rem;">
+                Kitchen ({{ in_kitchen_count }})
+            </a>
+            <a href="{{ url_for('delivery.index', status='Out for Delivery') }}" class="btn btn-outline-primary py-0.5 px-2 {% if status_filter == 'Out for Delivery' %}active{% endif %}" style="font-size:0.72rem;">
+                Transit ({{ in_transit_count }})
+            </a>
+            <a href="{{ url_for('delivery.index', status='Delivered') }}" class="btn btn-outline-success py-0.5 px-2 {% if status_filter == 'Delivered' %}active{% endif %}" style="font-size:0.72rem;">
+                Delivered ({{ delivered_count }})
+            </a>
+        </div>
+        <span class="badge bg-gold text-dark fw-bold px-2 py-0.5" style="font-size: 0.68rem;">
+            <i class="fa-solid fa-motorcycle me-1"></i> Live Dispatch
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury table-compact datatable mb-0" style="font-size: 0.76rem;">
+            <thead>
+                <tr>
+                    <th style="width: 34px;">Photo</th>
+                    <th style="min-width: 110px;">Order &amp; Time</th>
+                    <th style="min-width: 140px;">Customer</th>
+                    <th style="min-width: 150px;">Destination</th>
+                    <th style="min-width: 150px;">Items Ordered</th>
+                    <th style="min-width: 70px;">Total</th>
+                    <th style="min-width: 100px;">Courier</th>
+                    <th style="min-width: 80px;">Status</th>
+                    <th class="text-end" style="width: 70px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in delivery_orders %}
+                <tr>
+                    <!-- Photo -->
+                    <td class="align-middle text-center p-1">
+                        {% if o.delivery_image %}
+                            <a href="{{ o.delivery_image }}" target="_blank" title="View Parcel Photo">
+                                <img src="{{ o.delivery_image }}" alt="Delivery" class="rounded border border-warning" style="width: 30px; height: 26px; object-fit: cover;">
+                            </a>
+                        {% else %}
+                            <div class="rounded bg-light border border-secondary border-opacity-25 d-inline-flex align-items-center justify-content-center text-muted" style="width: 30px; height: 26px;">
+                                <i class="fa-solid fa-box text-gold" style="font-size:0.65rem;"></i>
+                            </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Order Ref & Time (Merged Compact) -->
+                    <td class="align-middle">
+                        <span class="badge px-1.5 py-0.5 font-monospace fw-bold" style="background: rgba(217, 119, 6, 0.2); color: #f59e0b; border: 1px solid #d97706; font-size: 0.72rem;">
+                            {{ o.order_number }}
+                        </span>
+                        <div class="text-light opacity-75 mt-0.5" style="font-size:0.64rem;">
+                            <i class="fa-regular fa-clock me-0.5 text-gold"></i>{{ o.created_at.strftime('%H:%M %b %d') }}
+                        </div>
+                    </td>
+
+                    <!-- Customer & Contact (Compact 2-Line) -->
+                    <td class="align-middle">
+                        <div class="fw-bold text-white text-truncate" style="max-width: 140px; font-size: 0.76rem;" title="{{ o.customer_name }}">
+                            {{ o.customer_name or (o.booking.guest.full_name if o.booking and o.booking.guest else 'Guest') }}
+                        </div>
+                        <div class="d-flex align-items-center gap-1 mt-0.5 flex-wrap">
+                            {% if o.room %}
+                            <span class="badge px-1.5 py-0.2 fw-bold" style="background: #1e40af; color: #ffffff; border: 1px solid #000000; font-size: 0.6rem;">
+                                <i class="fa-solid fa-hotel me-0.5"></i>Rm {{ o.room.room_number }}
+                            </span>
+                            {% else %}
+                            <span class="badge px-1.5 py-0.2 fw-bold" style="background: #b91c1c; color: #ffffff; border: 1px solid #000000; font-size: 0.6rem;" title="City Delivery / Lido Area">
+                                <i class="fa-solid fa-location-dot me-0.5"></i>City / Lido
+                            </span>
+                            {% endif %}
+                            {% if o.customer_phone %}
+                            <span class="text-white opacity-75" style="font-size: 0.64rem;">
+                                <i class="fa-solid fa-phone text-warning me-0.5"></i>{{ o.customer_phone }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <!-- Destination & Truncated Notes -->
+                    <td class="align-middle">
+                        <div class="text-white fw-semibold text-truncate" style="max-width: 160px; font-size: 0.74rem;" title="{{ o.delivery_address }}">
+                            <i class="fa-solid fa-map-pin text-danger me-1"></i>{{ o.delivery_address or 'Front Desk Reception' }}
+                        </div>
+                        {% if o.delivery_notes %}
+                        <div class="text-truncate mt-0.5" style="max-width: 160px; font-size: 0.64rem; color: #cbd5e1;" title="{{ o.delivery_notes }}">
+                            <i class="fa-solid fa-comment-dots text-gold me-1"></i>{{ o.delivery_notes }}
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Items Ordered (Compact List with Tooltip) -->
+                    <td class="align-middle">
+                        <div class="text-truncate" style="max-width: 160px; font-size: 0.72rem;" title="{% for itm in o.items %}{{ itm.quantity }}x {{ itm.menu_item.name if itm.menu_item else 'Item' }}{% if not loop.last %}, {% endif %}{% endfor %}">
+                            {% for itm in o.items %}
+                            <span class="text-light">
+                                <strong class="text-gold">{{ itm.quantity }}x</strong> {{ itm.menu_item.name[:16] if itm.menu_item else 'Item' }}{% if not loop.last %}, {% endif %}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </td>
+
+                    <!-- Total Amount -->
+                    <td class="align-middle">
+                        <span class="fw-bold font-monospace text-gold" style="font-size: 0.82rem;">${{ "{:,.2f}".format(o.total_amount) }}</span>
+                    </td>
+
+                    <!-- Courier / Rider -->
+                    <td class="align-middle">
+                        {% if o.delivery_rider and o.delivery_rider != 'Pending Assignment' %}
+                        <span class="badge px-1.5 py-0.5 fw-bold text-truncate" style="background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid rgba(147, 197, 253, 0.4); font-size: 0.64rem; max-width: 100px;" title="{{ o.delivery_rider }}">
+                            <i class="fa-solid fa-person-biking me-0.5"></i> {{ o.delivery_rider }}
+                        </span>
+                        {% else %}
+                        <span class="badge px-1.5 py-0.5" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid #64748b; font-size: 0.62rem;">
+                            Unassigned
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Status -->
+                    <td class="align-middle">
+                        <span class="{{ o.status_badge }} px-1.5 py-0.5" style="font-size: 0.64rem;">{{ o.status }}</span>
+                    </td>
+
+                    <!-- Actions (Edit & Delete Icon Buttons) -->
+                    <td class="text-end align-middle">
+                        <div class="d-inline-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-gold py-0.5 px-1.5" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#updateDeliveryModal{{ o.id }}" title="Bedel / Update Status">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-1.5" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#deleteDeliveryModal{{ o.id }}" title="Tirtir / Delete Delivery">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-3">No delivery orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODALS OUTSIDE TABLE (PREVENTS FREEZING & COLUMN STRETCHING)
+     ============================================================ -->
+{% for o in delivery_orders %}
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateDeliveryModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-white text-dark shadow-lg" style="border: 1px solid #cbd5e1;">
+            <div class="modal-header border-bottom py-2.5" style="background:#f8fafc;">
+                <h6 class="modal-title fw-bold" style="color:#0f172a;">
+                    <i class="fa-solid fa-truck-fast text-gold me-2"></i>Bedel Dalabka: {{ o.order_number }}
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('delivery.update_status', order_id=o.id) }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body text-start py-2.5">
+                    <div class="p-2.5 mb-2.5 rounded bg-light border small">
+                        <div><strong>Customer:</strong> {{ o.customer_name }}</div>
+                        <div><strong>Destination:</strong> {{ o.delivery_address }}</div>
+                        <div><strong>Order Total:</strong> ${{ "{:,.2f}".format(o.total_amount) }}</div>
+                    </div>
+
+                    {% if o.delivery_image %}
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small text-muted">Sawirka Baakada (Current Photo)</label>
+                        <div>
+                            <img src="{{ o.delivery_image }}" class="rounded border border-warning w-100" style="max-height: 100px; object-fit: cover;">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-2.5">
+                        <label class="form-label fw-bold small text-muted">Xaaladda Gaarsiinta (Delivery Status)</label>
+                        <select name="status" class="form-select form-select-sm bg-white text-dark" required>
+                            <option value="Pending" {% if o.status == 'Pending' %}selected{% endif %}>Pending (Sugaya Jikada)</option>
+                            <option value="In Kitchen" {% if o.status == 'In Kitchen' %}selected{% endif %}>In Kitchen (Kuugga ayaa karinaya)</option>
+                            <option value="Ready" {% if o.status == 'Ready' %}selected{% endif %}>Ready (Diyaar ah - Food Ready)</option>
+                            <option value="Out for Delivery" {% if o.status == 'Out for Delivery' %}selected{% endif %}>Out for Delivery (Waa loo wadaa)</option>
+                            <option value="Delivered" {% if o.status == 'Delivered' %}selected{% endif %}>Delivered (Waa la Gaarsiiyay)</option>
+                            <option value="Cancelled" {% if o.status == 'Cancelled' %}selected{% endif %}>Cancelled (La Joojiyay)</option>
+                        </select>
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label fw-bold small text-muted">Qofka / Mootada Qaadeysa (Courier Rider)</label>
+                        <input type="text" name="delivery_rider" class="form-control form-control-sm bg-white text-dark" value="{{ o.delivery_rider if o.delivery_rider != 'Pending Assignment' else '' }}" placeholder="tusaale: Rider Maxamed (Mooto 02)">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small text-muted">Soo Geli Sawirka Cuntada / Baakada</label>
+                        <input type="file" name="delivery_image" accept="image/*" class="form-control form-control-sm bg-white text-dark">
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2" style="background:#f8fafc;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-sm btn-gold fw-bold">Kaydi Isbedelka</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Delivery Modal -->
+<div class="modal fade" id="deleteDeliveryModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-white text-dark shadow-lg border border-danger">
+            <div class="modal-header border-bottom border-danger border-opacity-25 bg-danger bg-opacity-10 py-2.5">
+                <h6 class="modal-title fw-bold text-danger">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Tirtir Dalabka: {{ o.order_number }}
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('delivery.delete_delivery', order_id=o.id) }}" method="POST">
+                <div class="modal-body text-start py-2.5">
+                    <p class="mb-2 small">Ma hubtaa inaad tirtirto dalabkan gaarsiinta:</p>
+                    <div class="p-2.5 mb-2 rounded bg-light border border-danger border-opacity-25 small">
+                        <div><strong>Order #:</strong> {{ o.order_number }}</div>
+                        <div><strong>Customer:</strong> {{ o.customer_name }}</div>
+                        <div><strong>Total:</strong> ${{ "{:,.2f}".format(o.total_amount) }}</div>
+                        <div><strong>Destination:</strong> {{ o.delivery_address }}</div>
+                    </div>
+                    <small class="text-danger fw-semibold" style="font-size:0.75rem;">Digniin: Talaabadani dalabka si buuxda ayay u tirtiraysaa.</small>
+                </div>
+                <div class="modal-footer border-top py-2" style="background:#f8fafc;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-sm btn-danger fw-bold">
+                        <i class="fa-solid fa-trash-can me-1"></i> Haa, Tirtir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Dispatch New Delivery Modal -->
+<div class="modal fade" id="newDeliveryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-white text-dark shadow-lg" style="border:1px solid #cbd5e1;">
+            <div class="modal-header border-bottom py-2.5" style="background:#f8fafc;">
+                <h6 class="modal-title fw-bold" style="color:#0f172a;">
+                    <i class="fa-solid fa-cart-flatbed text-gold me-2"></i>Dispatch New Express Delivery
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('delivery.create_delivery') }}" method="POST" id="newDeliveryForm" enctype="multipart/form-data">
+                <input type="hidden" name="items_json" id="deliv-items-json">
+                <div class="modal-body text-start py-2.5">
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted mb-1">Customer Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_name" class="form-control form-control-sm bg-white text-dark" required placeholder="e.g. Faarax Cali">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted mb-1">Phone Number <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_phone" class="form-control form-control-sm bg-white text-dark" required placeholder="+252 61 555-0100">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted mb-1">Destination / Delivery Address <span class="text-danger">*</span></label>
+                            <input type="text" name="delivery_address" class="form-control form-control-sm bg-white text-dark" required placeholder="e.g. Lido Beach Villa 4 / Room 205">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted mb-1">In-House Room (Optional)</label>
+                            <select name="room_id" class="form-select form-select-sm bg-white text-dark">
+                                <option value="">-- City / Non-Resident Delivery --</option>
+                                {% for r in occupied_rooms %}
+                                <option value="{{ r.id }}">Room {{ r.room_number }} (Occupied)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Items Selection -->
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small text-muted mb-1">Select Culinary Menu Items</label>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                            {% for item in menu_items %}
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                <div>
+                                    <strong class="text-dark small">{{ item.name }}</strong>
+                                    <span class="text-gold font-monospace ms-2 small">${{ "{:,.2f}".format(item.price) }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button type="button" class="btn btn-xs btn-outline-gold py-0.5 px-2" style="font-size:0.7rem;" onclick="addDelivItem({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }})">
+                                        <i class="fa-solid fa-plus"></i> Add
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Selected Items Summary -->
+                    <div class="p-2 mb-2 rounded bg-light border">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="text-dark small">Selected Delivery Items:</strong>
+                            <span id="deliv-total-display" class="fw-bold text-success small">$0.00</span>
+                        </div>
+                        <div id="deliv-items-list" class="small text-muted" style="font-size: 0.74rem;">No items selected yet.</div>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted mb-1">Courier / Delivery Rider</label>
+                            <input type="text" name="delivery_rider" class="form-control form-control-sm bg-white text-dark" placeholder="e.g. Ahmed (Bike Express 1)">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted mb-1">Chef / Courier Notes</label>
+                            <input type="text" name="delivery_notes" class="form-control form-control-sm bg-white text-dark" placeholder="e.g. Extra sauce, ring bell on arrival">
+                        </div>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="form-label fw-bold small text-muted mb-1">Attach Package / Dish Photo (Optional)</label>
+                        <input type="file" name="delivery_image" accept="image/*" class="form-control form-control-sm bg-white text-dark">
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2" style="background:#f8fafc;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-gold fw-bold"><i class="fa-solid fa-paper-plane me-1"></i> Dispatch Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let delivItems = [];
+function addDelivItem(id, name, price) {
+    const existing = delivItems.find(i => i.id === id);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        delivItems.push({ id: id, name: name, price: price, qty: 1 });
+    }
+    renderDelivItems();
+}
+function renderDelivItems() {
+    const listEl = document.getElementById('deliv-items-list');
+    const totalEl = document.getElementById('deliv-total-display');
+    const jsonInput = document.getElementById('deliv-items-json');
+    if (!listEl) return;
+
+    if (delivItems.length === 0) {
+        listEl.innerHTML = '<span class="text-muted">No items selected yet. Click "+ Add" above.</span>';
+        if (totalEl) totalEl.textContent = '$0.00';
+        if (jsonInput) jsonInput.value = '';
+        return;
+    }
+
+    let subtotal = 0;
+    listEl.innerHTML = delivItems.map(i => {
+        subtotal += i.price * i.qty;
+        return `<div>• <strong>${i.qty}x</strong> ${i.name} - $${(i.price * i.qty).toFixed(2)}</div>`;
+    }).join('');
+
+    const tax = subtotal * 0.05;
+    const total = subtotal + tax;
+    if (totalEl) totalEl.textContent = `$${total.toFixed(2)} (incl. 5% tax)`;
+    if (jsonInput) jsonInput.value = JSON.stringify(delivItems);
+}
+document.getElementById('newDeliveryForm').addEventListener('submit', function(e) {
+    if (delivItems.length === 0) {
+        e.preventDefault();
+        alert('Please select at least 1 menu item to deliver.');
+    }
+});
+</script>
+{% endblock %}

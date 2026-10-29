@@ -1,0 +1,594 @@
+{% extends "base.html" %}
+
+{% block title %}Reception & Front Desk Hub | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Top Role Banner -->
+    <div class="card card-luxury mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-dark" style="width: 52px; height: 52px; background: #f59e0b; font-size: 1.5rem;">
+                        <i class="fa-solid fa-bell-concierge"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="fw-bold mb-0 text-white">Reception &amp; Front Desk Terminal</h4>
+                            <span class="badge bg-gold text-dark fw-bold">Live Front Desk</span>
+                        </div>
+                        <p class="text-white-50 mb-0 small">Welcome back, <strong>{{ current_user.full_name or current_user.username }}</strong>. Real-time guest arrivals, departures, and room allocations.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('checkin.index') }}" class="btn btn-gold btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-check-double me-1"></i> Check-In Guest
+                    </a>
+                    <a href="{{ url_for('bookings.new') }}" class="btn btn-outline-light btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-calendar-plus me-1"></i> New Reservation
+                    </a>
+                    <a href="{{ url_for('rooms.status_board') }}" class="btn btn-outline-warning btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-border-all me-1"></i> Room Matrix
+                    </a>
+                    <a href="{{ url_for('communications.hub') }}" class="btn btn-success btn-sm fw-bold px-3 py-2">
+                        <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp &amp; SMS
+                    </a>
+                    <a href="{{ url_for('restaurant.table_reservations') }}" class="btn btn-outline-info btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-chair me-1"></i> Dining Tables ({{ today_reservations_count }})
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 Front Desk KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-warning shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Deposits Held</div>
+                        <h4 class="fw-bold text-warning mt-1 mb-0">${{ "{:,.2f}".format(total_held_deposits) }}</h4>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-25 text-dark p-2 rounded"><i class="fa-solid fa-shield-halved fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-lock me-1"></i> Guest safe escrow</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-info shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Table Bookings</div>
+                        <h3 class="fw-bold text-info mt-1 mb-0">{{ today_reservations_count }}</h3>
+                    </div>
+                    <span class="badge bg-info bg-opacity-25 text-info p-2 rounded"><i class="fa-solid fa-chair fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-utensils me-1"></i> Lido Dining Today</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Arrivals Today</div>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">{{ today_checkins }}</h3>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded"><i class="fa-solid fa-plane-arrival fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-clock me-1"></i> Expected check-ins</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Departures Today</div>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">{{ today_checkouts }}</h3>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger p-2 rounded"><i class="fa-solid fa-plane-departure fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-receipt me-1"></i> Folio settlement due</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">In-House Guests</div>
+                        <h3 class="fw-bold text-primary mt-1 mb-0">{{ occupied_rooms }} <span class="fs-6 text-muted">/ {{ total_rooms }} Rooms</span></h3>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded"><i class="fa-solid fa-users fa-lg"></i></span>
+                </div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ occupancy_rate }}%"></div>
+                </div>
+                <div class="text-muted small mt-1">Occupancy: <strong>{{ occupancy_rate }}%</strong></div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Rooms Available</div>
+                        <h3 class="fw-bold text-success mt-1 mb-0">{{ available_rooms }}</h3>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded"><i class="fa-solid fa-door-open fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-key me-1"></i> Clean &amp; Ready for key</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100 p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Housekeeping Queue</div>
+                        <h3 class="fw-bold text-warning mt-1 mb-0">{{ cleaning_rooms }}</h3>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning p-2 rounded"><i class="fa-solid fa-broom fa-lg"></i></span>
+                </div>
+                <div class="text-muted small mt-2"><i class="fa-solid fa-soap me-1"></i> Cleaning / Inspection</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area: Arrivals & Quick Actions -->
+    <div class="row g-4 mb-4">
+        <!-- Expected Arrivals Today -->
+        <div class="col-lg-7">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-plane-arrival text-gold me-2"></i>Expected Arrivals &amp; Fast Check-In</h6>
+                    <span class="badge bg-gold text-dark">{{ arrivals|length }} Guests Today</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="text-muted small text-uppercase">
+                                <th>Booking Ref</th>
+                                <th>Guest Details</th>
+                                <th>Room Type</th>
+                                <th>Dates</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in arrivals %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-dark font-monospace text-gold px-2 py-1">{{ b.booking_reference }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ b.guest.full_name if b.guest else 'Guest' }}</div>
+                                    <div class="text-muted small"><i class="fa-solid fa-phone me-1"></i>{{ b.guest.phone if b.guest else 'N/A' }}</div>
+                                </td>
+                                <td>
+                                    {% if b.booking_rooms and b.booking_rooms[0].room and b.booking_rooms[0].room.room_type %}
+                                        <span class="badge bg-light text-dark border">{{ b.booking_rooms[0].room.room_type.name }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">Standard Suite</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-dark">{{ b.check_in_date.strftime('%b %d') }} &rarr; {{ b.check_out_date.strftime('%b %d') }}</div>
+                                    <div class="text-muted" style="font-size:0.7rem;">{{ (b.check_out_date - b.check_in_date).days }} nights</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning text-dark">{{ b.status }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('checkin.index') }}" class="btn btn-sm btn-gold fw-bold">
+                                        <i class="fa-solid fa-key me-1"></i> Check In
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fa-solid fa-calendar-check fa-2x mb-2 d-block text-secondary"></i>
+                                    No pending arrivals left for today. All guests checked in!
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- In-House Guests Eligible for Checkout -->
+        <div class="col-lg-5">
+            <div class="card bg-white border border-secondary border-opacity-25 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-door-open text-primary me-2"></i>In-House Guests / Departures</h6>
+                    <a href="{{ url_for('checkin.index') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="text-muted small text-uppercase">
+                                <th>Guest</th>
+                                <th>Allocated Room</th>
+                                <th>Due Balance</th>
+                                <th class="text-end">Folio / Out</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in in_house[:6] %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ b.guest.full_name if b.guest else 'Guest' }}</div>
+                                    <div class="text-muted small">Out: {{ b.check_out_date.strftime('%b %d') }}</div>
+                                </td>
+                                <td>
+                                    {% for br in b.booking_rooms %}
+                                    <span class="badge bg-primary text-white">Room {{ br.room.room_number if br.room else 'TBA' }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Unassigned</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% set inv = b.invoices[0] if b.invoices else None %}
+                                    {% if inv and inv.balance_due > 0 %}
+                                    <span class="fw-bold text-danger">${{ "{:,.2f}".format(inv.balance_due) }}</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Settled ($0)</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        {% if b.guest and b.guest.phone %}
+                                        <a href="https://api.whatsapp.com/send?phone={{ b.guest.phone }}&text=Asc%20{{ b.guest.full_name }},%20The%20Grand%20Horizon%20Resort%20waxaan%20kuu%20rajaynaynaa%20joogis%20wacan!" target="_blank" class="btn btn-sm btn-outline-success" title="Direct WhatsApp">
+                                            <i class="fa-brands fa-whatsapp"></i>
+                                        </a>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#receptionShiftModal{{ b.id }}" title="Bedel Qolka (Room Shift)">
+                                            <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                                        </button>
+                                        {% set inv = b.invoices[0] if b.invoices else None %}
+                                        {% if inv %}
+                                        <a href="{{ url_for('billing.folio', invoice_id=inv.id) }}" class="btn btn-sm btn-outline-gold" title="View Folio">
+                                            <i class="fa-solid fa-file-invoice"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No guests currently in-house.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kitchen & Room Service Food Orders (Reception Dispatch Hub) -->
+    <div class="card bg-white border border-secondary border-opacity-25 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-utensils text-gold me-2"></i>Dalabyada Cuntada &amp; Jikada (Kitchen &amp; Room Service Orders)
+                </h6>
+                <small class="text-muted">Orders-ka Jikadu soo kariso ee u baahan in qolalka loo geeyo ama macmiilka loo diro.</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-gold text-dark fw-bold">Active Orders: {{ active_food_orders|length if active_food_orders else 0 }}</span>
+                <a href="{{ url_for('restaurant.kitchen') }}" class="btn btn-sm btn-outline-warning text-dark fw-semibold">
+                    <i class="fa-solid fa-fire me-1"></i> Kitchen KDS
+                </a>
+                <a href="{{ url_for('restaurant.pos') }}" class="btn btn-sm btn-gold fw-bold">
+                    <i class="fa-solid fa-plus me-1"></i> New Dining Order
+                </a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="text-muted small text-uppercase">
+                            <th>Order #</th>
+                            <th>Destination / Room</th>
+                            <th>Customer / Contact</th>
+                            <th>Dishes Ordered</th>
+                            <th>Total & Lacagta</th>
+                            <th>Current Status</th>
+                            <th class="text-end">Reception Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ord in active_food_orders %}
+                        <tr class="{% if ord.status == 'Ready' %}table-success bg-opacity-25{% endif %}">
+                            <td>
+                                <span class="fw-bold text-dark font-monospace">{{ ord.order_number }}</span>
+                                <div class="text-muted small" style="font-size: 0.72rem;">{{ ord.order_type }} &bull; {{ ord.created_at.strftime('%H:%M') }}</div>
+                            </td>
+                            <td>
+                                {% if ord.room %}
+                                <span class="badge bg-primary text-white fs-6"><i class="fa-solid fa-bed me-1"></i>Room {{ ord.room.room_number }}</span>
+                                <div class="text-muted small" style="font-size:0.72rem;">In-Suite Service</div>
+                                {% elif ord.order_type == 'Delivery' or ord.delivery_address %}
+                                    {% if 'Room' in (ord.delivery_address or '') or 'Rm' in (ord.delivery_address or '') or 'Suite' in (ord.delivery_address or '') %}
+                                    <span class="badge bg-primary text-white fs-6"><i class="fa-solid fa-hotel me-1"></i>{{ ord.delivery_address }}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-motorcycle me-1"></i>{{ ord.delivery_address or 'City Delivery / Lido Area' }}</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="badge bg-secondary text-white">{{ ord.table_number or 'Front Desk' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ ord.customer_name or ord.guest_name or 'Hotel Guest' }}</div>
+                                <div class="text-muted small" style="font-size:0.72rem;">{{ ord.customer_phone or ord.guest_phone or 'No Phone' }}</div>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    {% for itm in ord.items %}
+                                    <span class="badge bg-secondary bg-opacity-25 text-dark border me-1 mb-1">
+                                        {{ itm.quantity }}x {{ itm.menu_item.name }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark font-monospace fs-6">
+                                    ${{ "{:,.2f}".format(ord.total_amount) }}
+                                </div>
+                                {% if ord.payment_status in ['Paid', 'Paid (Folio)'] or ord.is_charged_to_room %}
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-circle-check me-1"></i>{{ ord.payment_status or 'Paid' }}
+                                </span>
+                                <div class="text-muted small" style="font-size: 0.68rem;">{{ ord.payment_method or ('Folio Charged' if ord.is_charged_to_room else 'Direct') }}</div>
+                                {% else %}
+                                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-clock me-1"></i>Pending Payment
+                                </span>
+                                <div class="text-muted small" style="font-size: 0.68rem;">{{ ord.payment_method or 'Lama Bixin' }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ord.status == 'Ready' %}
+                                <span class="badge bg-success p-2 fw-bold text-white shadow-sm">
+                                    <i class="fa-solid fa-bell me-1"></i> Jikadu way karisay (Ready)
+                                </span>
+                                {% elif ord.status == 'In Kitchen' %}
+                                <span class="badge bg-warning text-dark p-2 fw-bold">
+                                    <i class="fa-solid fa-fire me-1"></i> Jikada ayaa karinaysa...
+                                </span>
+                                {% elif ord.status == 'Out for Delivery' %}
+                                <span class="badge bg-info text-dark p-2 fw-bold">
+                                    <i class="fa-solid fa-person-walking-luggage me-1"></i> Waa loo wadaa qolka
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary p-2">{{ ord.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1.5 align-items-center">
+                                    {% if ord.status == 'Ready' %}
+                                        {% if ord.payment_status in ['Paid', 'Paid (Folio)'] or ord.is_charged_to_room %}
+                                        <!-- Order is Paid: Send Out to Room / Guest directly -->
+                                        <form action="{{ url_for('restaurant.dispatch_order', order_id=ord.id) }}" method="POST">
+                                            <button type="submit" class="btn btn-sm btn-success fw-bold px-3 shadow-sm" title="U dir Qolka / Macmiilka">
+                                                <i class="fa-solid fa-paper-plane me-1"></i> U Dir Qolka &rarr;
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <!-- Order is Not Paid: Collect payment first or dispatch -->
+                                        <button type="button" class="btn btn-sm btn-warning text-dark fw-bold px-2.5 shadow-sm" data-bs-toggle="modal" data-bs-target="#receptionPayModal{{ ord.id }}" title="Qaado Lacagta Dalabka ka hor inta aan loo dirin qolka">
+                                            <i class="fa-solid fa-cash-register me-1"></i> 1. Qaado Lacagta
+                                        </button>
+                                        <form action="{{ url_for('restaurant.dispatch_order', order_id=ord.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-2" title="U dir qolka haddii biilka qolka lagu darayo">
+                                                <i class="fa-solid fa-paper-plane"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% elif ord.status == 'Out for Delivery' %}
+                                    <!-- Mark Delivered -->
+                                    <form action="{{ url_for('restaurant.deliver_order', order_id=ord.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-3">
+                                            <i class="fa-solid fa-check-double me-1"></i> La Gaarsiiyay
+                                        </button>
+                                    </form>
+                                    {% elif ord.status == 'Pending' %}
+                                    <!-- Send to Kitchen -->
+                                    <form action="{{ url_for('restaurant.send_to_kitchen', order_id=ord.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold">
+                                            <i class="fa-solid fa-fire me-1"></i> U Dir Jikada
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="{{ url_for('restaurant.orders') }}" class="btn btn-sm btn-outline-secondary" title="View Full Orders">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fa-solid fa-circle-check text-success fa-2x mb-2 d-block"></i>
+                                Ma jiraan dalabyo cunto oo hadda taagan. Dhammaan waa la gaarsiiyay!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Room Status Board Matrix -->
+    <div class="card bg-white border border-secondary border-opacity-25 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-bed text-gold me-2"></i>Quick Room Status Overview (Front Desk)</h6>
+            <div class="d-flex gap-2">
+                <span class="badge bg-success">Available: {{ available_rooms }}</span>
+                <span class="badge bg-danger">Occupied: {{ occupied_rooms }}</span>
+                <span class="badge bg-warning text-dark">Cleaning: {{ cleaning_rooms }}</span>
+                <span class="badge bg-secondary">Maintenance: {{ maintenance_rooms }}</span>
+            </div>
+        </div>
+        <div class="card-body p-3">
+            <div class="row g-2">
+                {% for r in rooms_preview %}
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <div class="p-2 rounded border text-center {% if r.status == 'Available' %}bg-success bg-opacity-10 border-success{% elif r.status == 'Occupied' %}bg-danger bg-opacity-10 border-danger{% elif r.status == 'Cleaning' %}bg-warning bg-opacity-10 border-warning{% else %}bg-secondary bg-opacity-10 border-secondary{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark fs-6">{{ r.room_number }}</span>
+                            <small class="text-muted">F{{ r.floor }}</small>
+                        </div>
+                        <div class="small fw-semibold {% if r.status == 'Available' %}text-success{% elif r.status == 'Occupied' %}text-danger{% elif r.status == 'Cleaning' %}text-warning{% else %}text-secondary{% endif %}">
+                            {{ r.status }}
+                        </div>
+                        <div class="text-muted" style="font-size:0.65rem;">{{ r.room_type.name if r.room_type else 'Suite' }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     RECEPTION PAYMENT MODALS (Outside Table)
+     ============================================================ -->
+{% for ord in active_food_orders %}
+<div class="modal fade" id="receptionPayModal{{ ord.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-warning bg-opacity-10 border-bottom border-warning border-opacity-25">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="fa-solid fa-cash-register text-warning me-2"></i>Qaado Lacagta - Order #{{ ord.order_number }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('restaurant.collect_payment', order_id=ord.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="p-3 rounded bg-light border mb-3 text-center">
+                        <div class="text-muted small">Wadarta Guud ee Lacagta Dalabka (Total Amount Due):</div>
+                        <div class="h3 fw-bold text-success my-1 font-monospace">${{ "{:,.2f}".format(ord.total_amount) }}</div>
+                        <div class="small mt-2">
+                            {% if ord.room %}
+                            <span class="badge bg-primary">Qolka: Room {{ ord.room.room_number }}</span>
+                            {% elif ord.delivery_address %}
+                            <span class="badge bg-warning text-dark">{{ ord.delivery_address }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Front Desk / Counter</span>
+                            {% endif %}
+                            <span class="text-muted ms-2 fw-semibold">{{ ord.customer_name or ord.guest_name or 'Macmiilka' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Habka Macmiilku u bixinayo Lacagta *</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="EVC Plus (Hormuud)" selected>📱 EVC Plus (*712*...#)</option>
+                            <option value="Sahal (Golis)">📱 Sahal / Golis Service</option>
+                            <option value="Zaad Service (Telesom)">📱 Zaad Service</option>
+                            <option value="Direct Cash">💵 Direct Cash (Lacag Caddaan ah)</option>
+                            <option value="Credit / Debit Card">💳 Master / Visa Card</option>
+                            {% if ord.room or ord.booking %}
+                            <option value="Post to Room Folio">🏨 Ku Dalac Biilka Qolka (Post to Room Folio)</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="alert alert-success py-2 px-3 small border-0 bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-circle-check me-1"></i>
+                        Markaad riixdo <strong>"Xaqiiji & Qaado Lacagta"</strong>, dalabka waxaa loo calaamadaynayaa <strong>Paid</strong>, kadibna cuntada waxaa si toos ah loogu diri karaa qolka.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-success btn-sm px-4 fw-bold">
+                        <i class="fa-solid fa-check me-1"></i> Xaqiiji & Qaado Lacagta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- ============================================================
+     RECEPTION ROOM SHIFT MODALS (Outside Table)
+     ============================================================ -->
+{% for b in in_house %}
+<div class="modal fade" id="receptionShiftModal{{ b.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-primary bg-opacity-10 border-bottom border-primary border-opacity-25">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="fa-solid fa-arrows-split-up-and-left text-primary me-2"></i>Qol-Beddelka Martida: {{ b.booking_reference }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('checkin.shift_room', booking_id=b.id) }}" method="POST">
+                <div class="modal-body text-start">
+                    <div class="p-3 rounded bg-light border mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Martida:</span>
+                            <strong class="text-dark">{{ b.guest.full_name if b.guest else 'Guest' }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Qolka Hadda Ku Hoydaan:</span>
+                            {% for br in b.booking_rooms %}
+                            <span class="badge bg-danger">Room {{ br.room.room_number }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Dooro Qolka Cusub ee loo wareejinayo *</label>
+                        <select name="new_room_id" class="form-select" required>
+                            <option value="">-- Dooro Qol Bannaan (Available Room) --</option>
+                            {% for r in rooms_preview if r.status == 'Available' %}
+                            <option value="{{ r.id }}">
+                                Room {{ r.room_number }} (Floor {{ r.floor }}) &bull; {{ r.room_type.name if r.room_type else 'Suite' }} - ${{ "{:,.2f}".format(r.room_type.base_price if r.room_type else 0) }}/night
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text text-muted" style="font-size:0.72rem;">Qolkii hore wuxuu noqonayaa <strong>Cleaning</strong>, Housekeeping-kana task degdeg ah ayaa loo dirayaa.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Sababta Qol-Beddelka *</label>
+                        <select name="reason" class="form-select" required>
+                            <option value="Guest Request (Dookh Martida)" selected>Guest Request (Dookh Martida)</option>
+                            <option value="Room Upgrade to Higher Category">Room Upgrade to Higher Category</option>
+                            <option value="AC / Electrical Maintenance">AC / Electrical Maintenance</option>
+                            <option value="Plumbing / Water Issue">Plumbing / Water Issue</option>
+                            <option value="Noise Complaint / Quiet Floor">Noise Complaint / Quiet Floor</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Lambarka Furaha Cusub (New Key Card Code)</label>
+                        <input type="text" name="key_card_number" class="form-control" placeholder="tusaale: KC-204">
+                    </div>
+
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="adjust_rate" id="recAdjustRate{{ b.id }}" checked>
+                        <label class="form-check-label small text-dark" for="recAdjustRate{{ b.id }}">
+                            Haddii qiimaha qolalku kala duwan yahay, biilka qolka (Folio) ku dar/ka jar faraqa.
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Jooji</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">
+                        <i class="fa-solid fa-check me-1"></i> Xaqiiji Qol-Beddelka
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

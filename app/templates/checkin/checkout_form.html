@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Check-Out Guest: {{ booking.booking_reference }} | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('checkin.index') }}" class="text-gold">Front Desk</a></li>
+            <li class="breadcrumb-item active text-light" aria-current="page">Guest Check-Out</li>
+        </ol>
+    </nav>
+    <h2 class="h3 fw-bold mb-1">Guest Check-Out: <span class="text-gold">{{ booking.guest.full_name if booking.guest else 'Guest' }}</span></h2>
+    <p class="text-muted small mb-0">Dib-u-eeg biilka guud (Folio), hubi deebaajiga la hayo, qiimee khidmadda ka bixitaanka dambe (Late Fee), oo qolka u gudbi nadiifinta.</p>
+</div>
+
+<div class="row g-4">
+    <!-- Folio Financial Status & Deposit Info -->
+    <div class="col-lg-6">
+        <div class="card-luxury p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <h5 class="fw-bold mb-0 text-gold"><i class="fa-solid fa-file-invoice-dollar text-gold me-2"></i>Final Billing Folio</h5>
+                {% if invoice %}
+                <a href="{{ url_for('billing.folio', invoice_id=invoice.id) }}" class="btn btn-sm btn-outline-gold">
+                    <i class="fa-solid fa-receipt me-1"></i> View Full Folio
+                </a>
+                {% endif %}
+            </div>
+
+            {% if invoice %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Total Charges (Dhammaan Kharashaadka):</span>
+                    <strong class="text-light">${{ "{:,.2f}".format(invoice.total_amount) }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Paid to Date (Wixii La Bixiyay):</span>
+                    <strong class="text-success">${{ "{:,.2f}".format(invoice.paid_amount) }}</strong>
+                </div>
+                <hr class="border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fs-5 fw-bold text-light">Outstanding Balance (Haraaga):</span>
+                    <span class="fs-4 fw-bold {% if invoice.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                        ${{ "{:,.2f}".format(invoice.balance_due) }}
+                    </span>
+                </div>
+            </div>
+
+            {% if invoice.balance_due > 0 %}
+            <div class="alert alert-warning border-0 small d-flex align-items-center mb-3">
+                <i class="fa-solid fa-triangle-exclamation fs-5 me-2"></i>
+                <div>
+                    Guest has an outstanding balance of <strong>${{ "{:,.2f}".format(invoice.balance_due) }}</strong>. You can apply the held security deposit or collect balance before checkout.
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-success border-0 small d-flex align-items-center mb-3">
+                <i class="fa-solid fa-circle-check fs-5 me-2"></i>
+                <div>All folio charges are fully settled. Safe for immediate check-out.</div>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-muted small">No active invoice linked.</div>
+            {% endif %}
+
+            <!-- Security Deposit Status Box -->
+            {% set record = booking.checkin_record %}
+            {% set dep_held = record.deposit_collected if (record and record.deposit_status == 'Held') else 0.0 %}
+            
+            <div class="p-3 bg-dark rounded border {% if dep_held > 0 %}border-warning{% else %}border-secondary border-opacity-25{% endif %} mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-light"><i class="fa-solid fa-shield-halved text-warning me-2"></i>Security Deposit (Deebaaji):</span>
+                    {% if dep_held > 0 %}
+                    <span class="badge bg-warning text-dark fs-6">${{ "{:,.2f}".format(dep_held) }} (HELD)</span>
+                    {% elif record and record.deposit_status == 'Refunded' %}
+                    <span class="badge bg-info text-dark">Refunded (${{ "{:,.2f}".format(record.deposit_refunded) }})</span>
+                    {% elif record and record.deposit_status == 'Applied to Folio' %}
+                    <span class="badge bg-success">Applied to Folio</span>
+                    {% else %}
+                    <span class="badge bg-secondary">None Collected</span>
+                    {% endif %}
+                </div>
+                <div class="small text-muted">
+                    {% if dep_held > 0 %}
+                    Waxaa jira deebaaji dhan <strong>${{ "{:,.2f}".format(dep_held) }}</strong> oo la qabtay xilligii Check-in-ka. Dooro ficilka aad ka qaadayso foomka dhinaca midig.
+                    {% else %}
+                    Wax deebaaji ah oo hadda la hayo ma jiraan.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check-out Actions Form -->
+    <div class="col-lg-6">
+        <div class="card-luxury p-4 h-100">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2 text-gold">
+                <i class="fa-solid fa-arrow-right-from-bracket text-gold me-2"></i>Check-out Processing
+            </h5>
+            <form action="{{ url_for('checkin.checkout_guest', booking_id=booking.id) }}" method="POST">
+
+                <!-- Deposit Handling Option if deposit is held -->
+                {% if dep_held > 0 %}
+                <div class="p-3 mb-3 rounded bg-dark border border-warning">
+                    <label class="form-label small fw-bold text-warning mb-2">
+                        <i class="fa-solid fa-hand-holding-dollar me-1"></i> Maxaa laga yeelayaa Deebaajiga (${{ "{:,.2f}".format(dep_held) }})?
+                    </label>
+                    
+                    {% if invoice and invoice.balance_due > 0 %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="deposit_action" id="depActionFolio" value="apply_to_folio" checked>
+                        <label class="form-check-label text-light small" for="depActionFolio">
+                            <strong>Ku goy Biilka (Apply towards Folio balance)</strong>
+                            <div class="text-muted" style="font-size: 0.72rem;">Deebaajiga (${{ "{:,.2f}".format(dep_held) }}) waxaa toos looga jari doonaa lacagta haraaga ah ee lagu leeyahay.</div>
+                        </label>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="deposit_action" id="depActionRefund" value="refund" {% if not (invoice and invoice.balance_due > 0) %}checked{% endif %}>
+                        <label class="form-check-label text-light small" for="depActionRefund">
+                            <strong>U celi Macmiilka (Refund Deposit to Guest)</strong>
+                            <div class="text-muted" style="font-size: 0.72rem;">Qolku ma laha wax qasaaro ah ama minibar la isticmaalay; deebaajiga oo dhan dib ugu celi martida.</div>
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Late Check-out Fee -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Late Check-out Surcharge ($)</label>
+                    <input type="number" step="0.01" min="0" name="late_checkout_fee" value="0.00" class="form-control form-control-sm bg-dark text-light border-secondary">
+                    <small class="text-muted" style="font-size: 0.72rem;">Apply fee if guest requested or took late departure past standard 11:00 AM.</small>
+                </div>
+
+                <!-- Check-out Notes -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Check-out Notes</label>
+                    <textarea name="notes" class="form-control bg-dark text-light border-secondary" rows="2" placeholder="Key card returned, minibar inspected, guest luggage stored, feedback, etc."></textarea>
+                </div>
+
+                {% if invoice and invoice.balance_due > 0 %}
+                <div class="mb-3 form-check">
+                    <input type="checkbox" name="confirm_unpaid_checkout" value="1" id="confirmUnpaid" class="form-check-input">
+                    <label class="form-check-label text-warning small" for="confirmUnpaid">
+                        <strong>Override Notice:</strong> Check out guest with an outstanding balance (will remain pending in accounts receivable).
+                    </label>
+                </div>
+                {% endif %}
+
+                <div class="p-3 bg-dark rounded border border-secondary border-opacity-25 mb-4 text-muted small">
+                    <i class="fa-solid fa-circle-info text-info me-1"></i>
+                    Checking out will automatically set all booked room(s) to <strong>"Cleaning" (Dirty)</strong> and dispatch a priority turnover cleaning task to Housekeeping.
+                </div>
+
+                <button type="submit" class="btn btn-warning text-dark w-100 py-2 fw-bold shadow">
+                    <i class="fa-solid fa-check-double me-1"></i> Finalize Check-Out & Release Room
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Check-in Guest: {{ booking.booking_reference }} | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('checkin.index') }}" class="text-gold">Front Desk</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Guest Check-In</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">Check-in Guest: <span class="text-gold">{{ booking.guest.full_name if booking.guest else 'Guest' }}</span></h2>
+        <p class="text-muted small mb-0">Xaqiiji aqoonsiga (Passport/ID), ururi deebaajiga, u qor kaarka qolka (Key Card), una soo daabac Reception Registration Card.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('checkin.registration_card', booking_id=booking.id) }}" target="_blank" class="btn btn-gold btn-sm px-3 fw-bold">
+            <i class="fa-solid fa-file-signature me-1"></i> Print Reception Card (Warqadda)
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Guest Info & Document Verification -->
+    <div class="col-lg-6">
+        <div class="card-luxury p-4 h-100">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2 text-gold">
+                <i class="fa-solid fa-id-card text-gold me-2"></i>Guest Verification & Documents
+            </h5>
+            
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-dark border border-gold" style="width: 60px; height: 60px;">
+                    {% if booking.guest and booking.guest.avatar %}
+                    <img src="{{ url_for('static', filename=booking.guest.avatar) }}" class="rounded-circle w-100 h-100 object-fit-cover">
+                    {% else %}
+                    <i class="fa-solid fa-user-tie fs-3 text-gold"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h5 class="fw-bold text-light mb-0">{{ booking.guest.full_name if booking.guest else 'Guest' }}</h5>
+                    <div class="small text-muted">
+                        <span class="badge bg-gold text-dark">{{ booking.guest.vip_tier if booking.guest else 'Standard' }}</span>
+                        <span class="ms-1">{{ booking.guest.nationality if booking.guest else '' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing ID Document Preview -->
+            <div class="mb-3 p-3 bg-dark rounded border border-secondary border-opacity-25">
+                <label class="text-gold fw-semibold small d-flex justify-content-between mb-2">
+                    <span><i class="fa-solid fa-passport me-1"></i> Passport / ID Scan Photo:</span>
+                    {% if booking.guest and booking.guest.id_photo %}
+                    <span class="text-success small"><i class="fa-solid fa-circle-check"></i> Document on file</span>
+                    {% else %}
+                    <span class="text-warning small"><i class="fa-solid fa-triangle-exclamation"></i> Not yet uploaded</span>
+                    {% endif %}
+                </label>
+
+                {% if booking.guest and booking.guest.id_photo %}
+                <div class="position-relative text-center p-2 rounded border border-secondary bg-black">
+                    <img src="{{ url_for('static', filename=booking.guest.id_photo) }}" class="img-fluid rounded" style="max-height: 180px; object-fit: contain;" alt="Guest ID Scan">
+                    <div class="mt-2">
+                        <a href="{{ url_for('static', filename=booking.guest.id_photo) }}" target="_blank" class="btn btn-xs btn-outline-info text-decoration-none">
+                            <i class="fa-solid fa-up-right-from-square me-1"></i> View Full Document
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-4 border border-dashed border-secondary rounded text-muted small">
+                    <i class="fa-solid fa-id-badge fs-2 mb-2 text-secondary"></i>
+                    <div>No Passport / ID scan attached. Please take a photo or upload scan on the form opposite.</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Assigned Rooms -->
+            <div class="p-3 bg-dark rounded border border-secondary border-opacity-25">
+                <div class="text-gold fw-semibold small mb-2"><i class="fa-solid fa-door-open me-1"></i> Assigned Suite(s):</div>
+                {% for br in booking.booking_rooms %}
+                <div class="d-flex justify-content-between align-items-center py-1 {% if not loop.last %}border-bottom border-secondary border-opacity-25{% endif %}">
+                    <div>
+                        <strong class="text-light">Room {{ br.room.room_number }}</strong>
+                        <span class="badge bg-secondary ms-1">Floor {{ br.room.floor }}</span>
+                    </div>
+                    <span class="text-gold small fw-bold">{{ br.room.room_type.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Front Desk Check-in Action Form -->
+    <div class="col-lg-6">
+        <div class="card-luxury p-4 h-100">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2 text-gold">
+                <i class="fa-solid fa-key text-gold me-2"></i>Check-in & Deposit Processing
+            </h5>
+
+            <form action="{{ url_for('checkin.checkin_guest', booking_id=booking.id) }}" method="POST" enctype="multipart/form-data">
+                
+                <!-- RFID Key Card -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-light">
+                        <i class="fa-solid fa-microchip text-gold me-1"></i> Key Card Number / RFID Code <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="key_card_number" class="form-control bg-dark text-light border-secondary" placeholder="e.g. KC-205-8831" required autofocus>
+                    <small class="text-muted" style="font-size: 0.72rem;">Scan or enter the issued electronic RFID room key card code.</small>
+                </div>
+
+                <!-- Passport / ID Live Camera Scan or File Upload -->
+                <div class="mb-3 p-3 rounded bg-dark border border-secondary border-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-bold text-light mb-0">
+                            <i class="fa-solid fa-passport text-gold me-1"></i> Passport / ID Capture (Sawirka Aqoonsiga)
+                        </label>
+                        <span class="badge bg-gold text-dark fw-bold" style="font-size: 0.68rem;">Live Camera or File</span>
+                    </div>
+
+                    <!-- Dual Action Buttons -->
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" class="btn btn-outline-warning btn-sm flex-fill fw-semibold py-1.5" id="btnToggleCam">
+                            <i class="fa-solid fa-camera me-1"></i> Qaad Sawir Kaamero (Live Camera)
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill fw-semibold text-light py-1.5" id="btnToggleUpload">
+                            <i class="fa-solid fa-folder-open me-1"></i> Dooro Fayl (Upload File)
+                        </button>
+                    </div>
+
+                    <!-- Live Camera Viewport (Initially Collapsed) -->
+                    <div id="cameraViewportContainer" class="d-none mb-3 text-center p-2 rounded bg-black border border-warning position-relative">
+                        <div class="position-relative d-inline-block w-100" style="max-height: 250px; overflow: hidden; border-radius: 6px;">
+                            <video id="webcamStream" autoplay playsinline style="width: 100%; max-height: 250px; object-fit: cover; border-radius: 6px;"></video>
+                            
+                            <!-- Passport Guide Frame Overlay -->
+                            <div class="position-absolute top-50 start-50 translate-middle" 
+                                 style="width: 85%; height: 78%; border: 2px dashed #f59e0b; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); pointer-events: none;">
+                                <div class="position-absolute top-0 start-50 translate-middle-x bg-warning text-dark px-2 py-0.5 rounded-bottom fw-bold" style="font-size: 0.65rem;">
+                                    <i class="fa-solid fa-expand me-1"></i> Dhig Baasaboorka / ID Halkan (Align Document)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Camera Action Bar -->
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                            <button type="button" class="btn btn-warning text-dark fw-bold btn-sm px-3 shadow" id="btnCapturePhoto">
+                                <i class="fa-solid fa-camera me-1"></i> Qabo Sawirka (Snap Photo)
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnFlipCamera" title="Beddel Kaamirada (Front/Back)">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="btnCloseCamera">
+                                <i class="fa-solid fa-xmark me-1"></i> Xir
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Input (Collapsible/Accessible) -->
+                    <div id="fileUploadContainer" class="mb-2">
+                        <input type="file" name="id_photo" id="idPhotoFileInput" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*,application/pdf" capture="environment">
+                        <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Dooro sawirka baasaboorka (JPG, PNG) ama PDF file.</small>
+                    </div>
+
+                    <!-- Hidden Snapshot Input & Canvas -->
+                    <canvas id="snapshotCanvas" style="display: none;"></canvas>
+                    <input type="hidden" name="id_photo_base64" id="idPhotoBase64">
+
+                    <!-- Instant Live Preview Box -->
+                    <div id="idLivePreviewContainer" class="d-none mt-2 p-2 rounded bg-black border border-success text-center position-relative">
+                        <div class="d-flex justify-content-between align-items-center mb-1 px-1">
+                            <span class="text-success fw-bold small" style="font-size: 0.72rem;">
+                                <i class="fa-solid fa-circle-check me-1"></i> Sawirka Aqoonsiga Waa Diyaar (Document Ready)
+                            </span>
+                            <button type="button" class="btn btn-outline-danger btn-xs" id="btnClearPhoto" style="font-size: 0.65rem; padding: 2px 8px;">
+                                <i class="fa-solid fa-trash me-1"></i> Dib u qaad (Reset)
+                            </button>
+                        </div>
+                        <img id="idLivePreviewImg" src="" class="img-fluid rounded border border-secondary" style="max-height: 180px; object-fit: contain;">
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">ID Document Type</label>
+                        <select name="id_type" class="form-select form-select-sm bg-dark text-light border-secondary">
+                            <option value="Passport" {% if booking.guest and booking.guest.id_type == 'Passport' %}selected{% endif %}>Passport</option>
+                            <option value="National ID" {% if booking.guest and booking.guest.id_type == 'National ID' %}selected{% endif %}>National ID (Aqoonsi Qaran)</option>
+                            <option value="Driver License" {% if booking.guest and booking.guest.id_type == 'Driver License' %}selected{% endif %}>Driver License</option>
+                            <option value="Diplomatic ID" {% if booking.guest and booking.guest.id_type == 'Diplomatic ID' %}selected{% endif %}>Diplomatic ID</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Document Number</label>
+                        <input type="text" name="id_number" value="{{ booking.guest.id_number if booking.guest else '' }}" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Passport/ID #">
+                    </div>
+                </div>
+
+                <!-- Security Deposit Collection -->
+                <div class="p-3 mb-3 rounded bg-dark border border-warning border-opacity-50">
+                    <label class="form-label small fw-bold text-warning d-flex justify-content-between mb-1">
+                        <span><i class="fa-solid fa-shield-halved me-1"></i> Security Deposit (Deebaaji Horumaris)</span>
+                        <span class="badge bg-warning text-dark">Refundable / Folio Credit</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-secondary text-light border-secondary fw-bold">$</span>
+                        <input type="number" step="0.01" min="0" name="deposit_amount" value="50.00" class="form-control bg-dark text-light border-secondary fw-bold">
+                    </div>
+                    <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                        Lacagta deebaajiga waxaa loo haynayaa qasaaro ama isticmaalka minibar/room service. Marka uu baxayo (Check-out) waa loo celin karaa ama biilka ayaa lagala goyn karaa.
+                    </small>
+                </div>
+
+                <!-- Early Check-in Fee -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Early Check-in Surcharge ($)</label>
+                    <input type="number" step="0.01" min="0" name="early_checkin_fee" value="0.00" class="form-control form-control-sm bg-dark text-light border-secondary">
+                    <small class="text-muted" style="font-size: 0.72rem;">Apply fee if guest requested early access prior to standard 14:00 check-in.</small>
+                </div>
+
+                <!-- ID Physical Inspection Confirmation -->
+                <div class="mb-3 form-check">
+                    <input type="checkbox" name="id_verified" id="idVerified" class="form-check-input" checked required>
+                    <label class="form-check-label text-light small" for="idVerified">
+                        I confirm that the guest's passport / government ID has been physically examined and verified.
+                    </label>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small text-muted">Front Desk Notes</label>
+                    <textarea name="notes" class="form-control bg-dark text-light border-secondary" rows="2" placeholder="Luggage tags, VIP preference, airport transfer notes, etc."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-gold w-100 py-2 fw-bold shadow">
+                    <i class="fa-solid fa-check-circle me-1"></i> Issue Key Card, Collect Deposit & Check-In
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnToggleCam = document.getElementById('btnToggleCam');
+    const btnToggleUpload = document.getElementById('btnToggleUpload');
+    const cameraViewport = document.getElementById('cameraViewportContainer');
+    const fileUploadContainer = document.getElementById('fileUploadContainer');
+    const webcamStream = document.getElementById('webcamStream');
+    const btnCapturePhoto = document.getElementById('btnCapturePhoto');
+    const btnFlipCamera = document.getElementById('btnFlipCamera');
+    const btnCloseCamera = document.getElementById('btnCloseCamera');
+    const snapshotCanvas = document.getElementById('snapshotCanvas');
+    const idPhotoBase64 = document.getElementById('idPhotoBase64');
+    const idPhotoFileInput = document.getElementById('idPhotoFileInput');
+    const previewContainer = document.getElementById('idLivePreviewContainer');
+    const previewImg = document.getElementById('idLivePreviewImg');
+    const btnClearPhoto = document.getElementById('btnClearPhoto');
+
+    let currentStream = null;
+    let facingMode = 'environment'; // default to back camera for document scanning
+
+    async function startCamera() {
+        if (currentStream) {
+            stopCamera();
+        }
+        try {
+            const constraints = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            };
+            currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            webcamStream.srcObject = currentStream;
+            cameraViewport.classList.remove('d-none');
+            btnToggleCam.classList.replace('btn-outline-warning', 'btn-warning');
+            btnToggleCam.classList.add('text-dark');
+        } catch (err) {
+            console.error("Camera access error:", err);
+            alert("Kaamirada lama furi karo ama fasax lama helin (Camera access was denied or not supported on this device). Fadlan isticmaal 'Dooro Fayl' (Upload File).");
+        }
+    }
+
+    function stopCamera() {
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        cameraViewport.classList.add('d-none');
+        btnToggleCam.classList.replace('btn-warning', 'btn-outline-warning');
+        btnToggleCam.classList.remove('text-dark');
+    }
+
+    btnToggleCam.addEventListener('click', function() {
+        if (cameraViewport.classList.contains('d-none')) {
+            startCamera();
+        } else {
+            stopCamera();
+        }
+    });
+
+    btnToggleUpload.addEventListener('click', function() {
+        stopCamera();
+        idPhotoFileInput.click();
+    });
+
+    btnFlipCamera.addEventListener('click', function() {
+        facingMode = (facingMode === 'environment') ? 'user' : 'environment';
+        startCamera();
+    });
+
+    btnCloseCamera.addEventListener('click', function() {
+        stopCamera();
+    });
+
+    // Capture photo from video stream
+    btnCapturePhoto.addEventListener('click', function() {
+        if (!webcamStream.videoWidth) return;
+        
+        snapshotCanvas.width = webcamStream.videoWidth;
+        snapshotCanvas.height = webcamStream.videoHeight;
+        const ctx = snapshotCanvas.getContext('2d');
+        ctx.drawImage(webcamStream, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
+
+        const dataUrl = snapshotCanvas.toDataURL('image/jpeg', 0.92);
+        idPhotoBase64.value = dataUrl;
+        previewImg.src = dataUrl;
+        previewContainer.classList.remove('d-none');
+        
+        // Stop camera after snap
+        stopCamera();
+    });
+
+    // File input preview
+    idPhotoFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    previewImg.src = evt.target.result;
+                    previewContainer.classList.remove('d-none');
+                    idPhotoBase64.value = ''; // file upload takes precedence
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // PDF or other document
+                previewContainer.classList.remove('d-none');
+                previewImg.src = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+            }
+        }
+    });
+
+    // Reset / Clear photo
+    btnClearPhoto.addEventListener('click', function() {
+        idPhotoBase64.value = '';
+        idPhotoFileInput.value = '';
+        previewImg.src = '';
+        previewContainer.classList.add('d-none');
+    });
+});
+</script>
+{% endblock %}

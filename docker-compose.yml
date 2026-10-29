@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: grand_horizon_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_hms_2026
+      MYSQL_DATABASE: hotel_management
+      MYSQL_USER: hotel_user
+      MYSQL_PASSWORD: hotel_password_2026
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/2_seed.sql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  web:
+    build: .
+    container_name: grand_horizon_web
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=production
+      - USE_MYSQL=true
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=hotel_management
+      - DB_USER=hotel_user
+      - DB_PASSWORD=hotel_password_2026
+      - SECRET_KEY=prod-secret-grand-horizon-2026-somalia
+    volumes:
+      - ./app/static/uploads:/app/app/static/uploads
+
+volumes:
+  mysql_data:

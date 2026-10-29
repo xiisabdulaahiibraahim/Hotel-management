@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Register New Guest | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('guests.index') }}" class="text-gold">Guests</a></li>
+            <li class="breadcrumb-item active text-light" aria-current="page">New Guest Registration</li>
+        </ol>
+    </nav>
+    <h2 class="h3 fw-bold mb-1">Register New Guest</h2>
+    <p class="text-muted small mb-0">Create a comprehensive guest CRM profile with identification and loyalty tracking.</p>
+</div>
+
+<div class="card-luxury p-4" style="max-width: 800px;">
+    <form action="{{ url_for('guests.add') }}" method="POST">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label small text-muted">First Name</label>
+                <input type="text" name="first_name" class="form-control bg-dark text-light border-secondary" placeholder="e.g. Maxamed" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Last Name</label>
+                <input type="text" name="last_name" class="form-control bg-dark text-light border-secondary" placeholder="e.g. Cali" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Email Address</label>
+                <input type="email" name="email" class="form-control bg-dark text-light border-secondary" placeholder="guest@example.com" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Phone Number</label>
+                <input type="text" name="phone" class="form-control bg-dark text-light border-secondary" placeholder="+252 61 ..." required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted">ID Type</label>
+                <select name="id_type" class="form-select bg-dark text-light border-secondary">
+                    <option value="Passport">Passport</option>
+                    <option value="National ID">National ID</option>
+                    <option value="Driver License">Driver License</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted">ID / Passport Number</label>
+                <input type="text" name="id_number" class="form-control bg-dark text-light border-secondary" placeholder="P-SOM-..." required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted">Nationality</label>
+                <input type="text" name="nationality" value="Somali" class="form-control bg-dark text-light border-secondary" placeholder="Enter nationality">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted">VIP Status Tier</label>
+                <select name="vip_tier" class="form-select bg-dark text-light border-secondary">
+                    <option value="Standard">Standard Tier</option>
+                    <option value="Silver">Silver Tier</option>
+                    <option value="Gold">Gold Tier</option>
+                    <option value="VIP Platinum">VIP Platinum</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Physical Address / City</label>
+                <input type="text" name="address" class="form-control bg-dark text-light border-secondary" placeholder="Mogadishu, Somalia">
+            </div>
+            <div class="col-12">
+                <label class="form-label small text-muted">Preferences & Notes</label>
+                <textarea name="notes" class="form-control bg-dark text-light border-secondary" rows="3" placeholder="Dietary preferences, preferred rooms, high-floor, extra pillow, etc."></textarea>
+            </div>
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-gold px-4 py-2 fw-semibold">
+                    <i class="fa-solid fa-save me-1"></i> Save Guest Profile
+                </button>
+                <a href="{{ url_for('guests.index') }}" class="btn btn-outline-secondary px-4 py-2 ms-2">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

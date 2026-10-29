@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Maintenance & Engineering | The Grand Horizon HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card-white {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        color: #0f172a !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .kpi-card-white:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    }
+    .kpi-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-val {
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+    }
+    .kpi-desc {
+        font-size: 0.76rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-gold">Home</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Maintenance & Engineering</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1 text-white">
+            <i class="fa-solid fa-wrench text-gold me-2"></i>Maintenance & Engineering Work Orders
+        </h2>
+        <p class="text-muted small mb-0">Track room repairs, preventive maintenance schedules, and technician work orders.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-light btn-sm px-3" onclick="window.print()">
+            <i class="fa-solid fa-print me-1.5"></i> Print Tickets
+        </button>
+        <a href="{{ url_for('reports.export_csv') }}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fa-solid fa-file-csv me-1.5"></i> Export CSV
+        </a>
+        <button class="btn btn-gold btn-sm px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#createTicketModal">
+            <i class="fa-solid fa-plus me-1.5"></i> Report Issue / Create Ticket
+        </button>
+    </div>
+</div>
+
+<!-- ============================================================
+     4 KPI SUMMARY CARDS (WHITE EXECUTIVE DESIGN)
+     ============================================================ -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Total Tickets -->
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-list-check text-primary me-1"></i> Total Work Orders</div>
+                    <div class="kpi-val text-primary">{{ tickets|length }}</div>
+                    <div class="kpi-desc">Total tickets logged</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>System Registry</span>
+                <span class="badge bg-primary bg-opacity-25 text-primary">All Time</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Open Tickets -->
+    {% set open_count = tickets | selectattr('status', 'equalto', 'Open') | list | length %}
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-triangle-exclamation text-danger me-1"></i> Open & Unassigned</div>
+                    <div class="kpi-val text-danger">{{ open_count }}</div>
+                    <div class="kpi-desc">Awaiting technician response</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>SLA Target: &lt; 1 hr</span>
+                <span class="badge {% if open_count > 0 %}bg-danger bg-opacity-25 text-danger{% else %}bg-success bg-opacity-25 text-success{% endif %}">
+                    {% if open_count > 0 %}Urgent{% else %}Clear{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: In Progress Tickets -->
+    {% set in_prog_count = tickets | selectattr('status', 'equalto', 'In Progress') | list | length %}
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-gears text-warning me-1"></i> In Progress</div>
+                    <div class="kpi-val text-warning">{{ in_prog_count }}</div>
+                    <div class="kpi-desc">Technicians active on-site</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Active Work</span>
+                <span class="badge bg-warning bg-opacity-25 text-warning">Underway</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Resolved / Closed -->
+    {% set resolved_count = tickets | selectattr('status', 'in', ['Resolved', 'Closed']) | list | length %}
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="kpi-title"><i class="fa-solid fa-circle-check text-success me-1"></i> Resolved Tickets</div>
+                    <div class="kpi-val text-success">{{ resolved_count }}</div>
+                    <div class="kpi-desc">Completed and certified</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center" style="font-size:0.72rem; color:#64748b;">
+                <span>Completion Rate</span>
+                <span class="badge bg-success bg-opacity-25 text-success">
+                    {% if tickets|length > 0 %}{{ ((resolved_count / (tickets|length)) * 100)|round|int }}%{% else %}100%{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card-luxury p-3 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-secondary {% if not selected_status %}active text-gold{% endif %}">All Tickets</a>
+            <a href="{{ url_for('maintenance.index', status='Open') }}" class="btn btn-outline-secondary {% if selected_status == 'Open' %}active text-gold{% endif %}">Open</a>
+            <a href="{{ url_for('maintenance.index', status='In Progress') }}" class="btn btn-outline-secondary {% if selected_status == 'In Progress' %}active text-gold{% endif %}">In Progress</a>
+            <a href="{{ url_for('maintenance.index', status='Resolved') }}" class="btn btn-outline-secondary {% if selected_status == 'Resolved' %}active text-gold{% endif %}">Resolved</a>
+        </div>
+        <span class="text-muted small">Showing {{ tickets|length }} matching work orders</span>
+    </div>
+</div>
+
+<!-- Tickets Table -->
+<div class="card-luxury p-4 mb-4">
+    <div class="table-responsive">
+        <table class="table-luxury datatable">
+            <thead>
+                <tr>
+                    <th>Ticket #</th>
+                    <th>Location / Room</th>
+                    <th>Issue Description</th>
+                    <th>Priority</th>
+                    <th>Assigned Tech</th>
+                    <th>Cost (Est / Act)</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tickets %}
+                <tr>
+                    <td class="fw-bold text-gold">#{{ t.id }}</td>
+                    <td class="fw-semibold">
+                        {% if t.room %}
+                        <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">Room {{ t.room.room_number }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Common Facility</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="fw-bold text-light">{{ t.issue_title }}</div>
+                        <small class="text-muted text-truncate d-inline-block" style="max-width: 320px;">{{ t.description }}</small>
+                    </td>
+                    <td>
+                        {% if t.priority == 'Emergency' %}
+                        <span class="badge bg-danger text-white"><i class="fa-solid fa-fire me-1"></i>Emergency</span>
+                        {% elif t.priority == 'High' %}
+                        <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">High</span>
+                        {% elif t.priority == 'Medium' %}
+                        <span class="badge bg-warning bg-opacity-25 text-warning border border-warning">Medium</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Low</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ t.technician.full_name if t.technician else '<span class="text-muted">Unassigned</span>'|safe }}</td>
+                    <td>
+                        <small class="text-muted">${{ "{:,.2f}".format(t.estimated_cost) }} / </small>
+                        <strong class="text-gold">${{ "{:,.2f}".format(t.actual_cost) }}</strong>
+                    </td>
+                    <td>
+                        {% if t.status == 'Open' %}
+                        <span class="badge bg-danger bg-opacity-25 text-danger">Open</span>
+                        {% elif t.status == 'In Progress' %}
+                        <span class="badge bg-warning bg-opacity-25 text-warning">In Progress</span>
+                        {% elif t.status == 'Resolved' %}
+                        <span class="badge bg-success bg-opacity-25 text-success">Resolved</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ t.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-gold" data-bs-toggle="modal" data-bs-target="#updateModal{{ t.id }}">
+                            <i class="fa-solid fa-screwdriver-wrench me-1"></i> Update
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODALS PLACED SAFELY OUTSIDE THE TABLE TO PREVENT DOM FREEZE
+     ============================================================ -->
+{% for t in tickets %}
+<div class="modal fade" id="updateModal{{ t.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-wrench text-gold me-2"></i>Update Ticket #{{ t.id }} - {{ t.issue_title }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('maintenance.update', ticket_id=t.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Work Order Status</label>
+                        <select name="status" class="form-select" required>
+                            <option value="Open" {% if t.status == 'Open' %}selected{% endif %}>Open</option>
+                            <option value="In Progress" {% if t.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Resolved" {% if t.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="Closed" {% if t.status == 'Closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Actual Incurred Repair Cost ($)</label>
+                        <input type="number" step="0.01" name="actual_cost" value="{{ t.actual_cost }}" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Technician Resolution Notes / Parts Replaced</label>
+                        <textarea name="resolution_notes" class="form-control" rows="3" placeholder="Describe actions taken, replaced components, or cause of issue">{{ t.resolution_notes or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Save Work Order Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal: Create Ticket -->
+<div class="modal fade" id="createTicketModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-triangle-exclamation text-gold me-2"></i>Report Maintenance Issue
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('maintenance.create') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Location / Room Number</label>
+                        <select name="room_id" class="form-select">
+                            <option value="">General Facility (Lobby, Restaurant, Pool, Elevators)</option>
+                            {% for r in rooms %}
+                            <option value="{{ r.id }}">Room {{ r.room_number }} (Floor {{ r.floor }}) - {{ r.room_type.name if r.room_type else '' }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Issue Title</label>
+                        <input type="text" name="issue_title" class="form-control" placeholder="e.g. AC cooling malfunction, bathroom faucet leak" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Priority Level</label>
+                            <select name="priority" class="form-select">
+                                <option value="Low">Low (Cosmetic / Routine)</option>
+                                <option value="Medium" selected>Medium (Standard)</option>
+                                <option value="High">High (Impacting Guest Comfort)</option>
+                                <option value="Emergency">Emergency (Immediate Safety Hazard)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-light">Estimated Repair Cost ($)</label>
+                            <input type="number" step="0.01" name="estimated_cost" value="0.00" class="form-control" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Assign Technician / Engineer</label>
+                        <select name="assigned_to" class="form-select">
+                            <option value="">-- Unassigned (General Queue) --</option>
+                            {% for tech in technicians %}
+                            <option value="{{ tech.id }}">{{ tech.full_name }} ({{ tech.role }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Detailed Issue Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Provide full details of the malfunction or required maintenance..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Submit Work Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

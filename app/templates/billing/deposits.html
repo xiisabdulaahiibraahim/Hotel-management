@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Security Deposit Escrow Hub | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('billing.index') }}" class="text-gold">Billing &amp; Finance</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Security Deposits</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">Security Deposit <span class="text-gold">Escrow &amp; Safe Management</span></h2>
+        <p class="text-muted small mb-0">Maamulka lacagaha deebaajiga ah ee martida laga qabto xilliga check-in-ka, dib-u-celinta, ama toos biilka loogu jaro.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('checkin.index') }}" class="btn btn-gold btn-sm fw-bold">
+            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Front Desk Check-in
+        </a>
+        <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Guest Folios
+        </a>
+    </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-warning">
+            <div class="text-muted small text-uppercase fw-bold">Active Held in Safe</div>
+            <div class="fs-4 fw-bold text-warning mt-1">${{ "{:,.2f}".format(total_held) }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">{{ held_records|length }} Active Deposits in Escrow</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-info">
+            <div class="text-muted small text-uppercase fw-bold">Refunded to Guests</div>
+            <div class="fs-4 fw-bold text-info mt-1">${{ "{:,.2f}".format(total_refunded) }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">{{ refunded_records|length }} Returned at checkout</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-success">
+            <div class="text-muted small text-uppercase fw-bold">Applied to Folio Settlement</div>
+            <div class="fs-4 fw-bold text-success mt-1">${{ "{:,.2f}".format(total_applied) }}</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">{{ applied_records|length }} Deducted from final bills</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+        <div class="card-luxury p-3 border-start border-4 border-primary">
+            <div class="text-muted small text-uppercase fw-bold">Total Deposit Records</div>
+            <div class="fs-4 fw-bold text-light mt-1">{{ records|length }} Records</div>
+            <div class="text-muted small" style="font-size: 0.72rem;">Lifetime deposit telemetry</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<ul class="nav nav-pills mb-3 border-bottom border-secondary border-opacity-25 pb-2" id="depositTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active btn-sm fw-bold me-2" id="held-tab" data-bs-toggle="tab" data-bs-target="#held-pane" type="button" role="tab">
+            <i class="fa-solid fa-lock text-warning me-1"></i> Active Held in Safe ({{ held_records|length }})
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link btn-sm fw-bold me-2" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-pane" type="button" role="tab">
+            <i class="fa-solid fa-list-check me-1"></i> All Deposit History ({{ records|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="depositTabContent">
+    <!-- Tab 1: Active Held in Safe -->
+    <div class="tab-pane fade show active" id="held-pane" role="tabpanel">
+        <div class="card-luxury p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                <h5 class="fw-bold mb-0 text-white">
+                    <i class="fa-solid fa-shield-halved text-warning me-2"></i>Active Escrow Deposits Held for In-House Guests
+                </h5>
+                <span class="badge bg-warning text-dark fw-bold">${{ "{:,.2f}".format(total_held) }} Total Active</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>Booking Ref</th>
+                            <th>Guest Name</th>
+                            <th>Room #</th>
+                            <th>Deposit Held</th>
+                            <th>Date Collected</th>
+                            <th>Status</th>
+                            <th class="text-end">Escrow Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in held_records %}
+                        <tr>
+                            <td class="fw-bold text-gold">
+                                {{ r.booking.booking_reference if r.booking else 'N/A' }}
+                            </td>
+                            <td>
+                                <strong class="text-light">{{ r.booking.guest.full_name if r.booking and r.booking.guest else 'Guest' }}</strong>
+                                <div class="text-muted small" style="font-size: 0.72rem;">{{ r.booking.guest.phone if r.booking and r.booking.guest else '' }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary fs-6"><i class="fa-solid fa-door-open me-1"></i>Room {{ r.room.room_number if r.room else 'N/A' }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-warning fs-6">${{ "{:,.2f}".format(r.deposit_collected) }}</span>
+                            </td>
+                            <td>
+                                <span class="text-light small">{{ r.actual_check_in.strftime('%H:%M %b %d') }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark"><i class="fa-solid fa-lock me-1"></i>Held in Safe</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <form action="{{ url_for('billing.apply_deposit_to_folio', record_id=r.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Ma hubtaa inaad deebaajigan toos ugu jarto biilka qolka?');" title="Ku goy Biilka (Apply to Folio)">
+                                            <i class="fa-solid fa-receipt me-1"></i> Apply to Folio
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('billing.refund_deposit', record_id=r.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-info" onclick="return confirm('Ma hubtaa inaad deebaajigan dib ugu celiso macmiilka?');" title="U celi Macmiilka (Refund)">
+                                            <i class="fa-solid fa-hand-holding-dollar me-1"></i> Refund
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-shield-halved fs-1 mb-2 text-secondary"></i>
+                                <div>Wax deebaaji ah oo hadda qasnadda lagu hayo ma jiraan.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: All History -->
+    <div class="tab-pane fade" id="all-pane" role="tabpanel">
+        <div class="card-luxury p-4">
+            <div class="table-responsive">
+                <table class="table-luxury datatable">
+                    <thead>
+                        <tr>
+                            <th>Ref #</th>
+                            <th>Guest Name</th>
+                            <th>Room #</th>
+                            <th>Deposit Amount</th>
+                            <th>Status</th>
+                            <th>Refunded Amount</th>
+                            <th>Check-in Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td class="fw-bold text-gold">{{ r.booking.booking_reference if r.booking else 'N/A' }}</td>
+                            <td><strong class="text-light">{{ r.booking.guest.full_name if r.booking and r.booking.guest else 'Guest' }}</strong></td>
+                            <td><span class="badge bg-secondary">Room {{ r.room.room_number if r.room else 'N/A' }}</span></td>
+                            <td><strong class="text-warning">${{ "{:,.2f}".format(r.deposit_collected) }}</strong></td>
+                            <td>
+                                {% if r.deposit_status == 'Held' %}
+                                <span class="badge bg-warning text-dark">Held in Safe</span>
+                                {% elif r.deposit_status == 'Refunded' %}
+                                <span class="badge bg-info text-dark">Refunded to Guest</span>
+                                {% elif r.deposit_status == 'Applied to Folio' %}
+                                <span class="badge bg-success">Applied to Folio</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ r.deposit_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.deposit_refunded > 0 %}
+                                <span class="text-info fw-bold">${{ "{:,.2f}".format(r.deposit_refunded) }}</span>
+                                {% else %}
+                                <span class="text-muted">$0.00</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="text-muted small">{{ r.actual_check_in.strftime('%Y-%m-%d %H:%M') }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

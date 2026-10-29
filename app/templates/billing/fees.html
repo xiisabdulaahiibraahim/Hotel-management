@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Fees & Extra Charges Schedule | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('billing.index') }}" class="text-gold">Billing & Finance</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Fees & Surcharges</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">Fees, Surcharges & Extra Services</h2>
+        <p class="text-muted small mb-0">Configure standard hotel fee schedules, airport transfers, early/late check-in surcharges, and guest service rates.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-file-invoice me-1"></i> Folios & Invoices
+        </a>
+        <button class="btn btn-gold btn-sm px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#addFeeModal">
+            <i class="fa-solid fa-plus me-1"></i> Add New Fee / Surcharge
+        </button>
+    </div>
+</div>
+
+<!-- KPI Cards for Fees -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card p-3 shadow-sm" style="background:#ffffff; border-radius:12px; border:1px solid #e2e8f0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold" style="font-size:0.7rem;">Configured Fees</span>
+                    <h3 class="fw-bold my-1 text-dark">{{ services|length }}</h3>
+                    <small class="text-muted">Standard rate cards</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:46px;height:46px;background:rgba(217,119,6,0.12);color:#d97706;">
+                    <i class="fa-solid fa-tags fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card p-3 shadow-sm" style="background:#ffffff; border-radius:12px; border:1px solid #e2e8f0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold" style="font-size:0.7rem;">Active Services</span>
+                    <h3 class="fw-bold my-1 text-success">{{ services|selectattr('is_active')|list|length }}</h3>
+                    <small class="text-muted">Available for billing</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:46px;height:46px;background:rgba(16,185,129,0.12);color:#10b981;">
+                    <i class="fa-solid fa-circle-check fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card p-3 shadow-sm" style="background:#ffffff; border-radius:12px; border:1px solid #e2e8f0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold" style="font-size:0.7rem;">Categories</span>
+                    <h3 class="fw-bold my-1 text-primary">{{ categories|length }}</h3>
+                    <small class="text-muted">Transport, laundry, spa, fines</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:46px;height:46px;background:rgba(59,130,246,0.12);color:#3b82f6;">
+                    <i class="fa-solid fa-shapes fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card p-3 shadow-sm" style="background:#ffffff; border-radius:12px; border:1px solid #e2e8f0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold" style="font-size:0.7rem;">Currency</span>
+                    <h3 class="fw-bold my-1 text-warning">$ USD</h3>
+                    <small class="text-muted">Also accepts EVC / Zaad</small>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:46px;height:46px;background:rgba(245,158,11,0.12);color:#f59e0b;">
+                    <i class="fa-solid fa-dollar-sign fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fees Schedule Table -->
+<div class="card-luxury p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+        <h5 class="fw-bold mb-0">
+            <i class="fa-solid fa-receipt text-gold me-2"></i> Standard Fee & Surcharge Catalog
+        </h5>
+        <span class="badge bg-secondary">{{ services|length }} Items</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table-luxury datatable">
+            <thead>
+                <tr>
+                    <th>Service / Fee Name</th>
+                    <th>Category</th>
+                    <th>Standard Price ($)</th>
+                    <th>Billing Unit</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for svc in services %}
+                <tr>
+                    <td class="fw-bold text-light">
+                        <i class="fa-solid fa-tag text-gold me-1"></i> {{ svc.name }}
+                    </td>
+                    <td>
+                        {% if 'Transport' in svc.category %}
+                        <span class="badge-cat-transport"><i class="fa-solid fa-van-shuttle me-1"></i>{{ svc.category }}</span>
+                        {% elif 'Dining' in svc.category or 'Minibar' in svc.category %}
+                        <span class="badge-cat-dining"><i class="fa-solid fa-utensils me-1"></i>{{ svc.category }}</span>
+                        {% elif 'Spa' in svc.category or 'Wellness' in svc.category %}
+                        <span class="badge-cat-spa"><i class="fa-solid fa-spa me-1"></i>{{ svc.category }}</span>
+                        {% elif 'Laundry' in svc.category or 'Cleaning' in svc.category %}
+                        <span class="badge-cat-housekeeping"><i class="fa-solid fa-shirt me-1"></i>{{ svc.category }}</span>
+                        {% elif 'Fine' in svc.category or 'Damage' in svc.category or 'Late' in svc.category %}
+                        <span class="badge-cat-fines"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ svc.category }}</span>
+                        {% else %}
+                        <span class="badge-cat-general"><i class="fa-solid fa-tag me-1"></i>{{ svc.category }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-bold text-success fs-6">${{ "{:,.2f}".format(svc.price) }}</td>
+                    <td><span class="badge bg-secondary text-white fw-semibold px-2 py-1">{{ svc.unit_type }}</span></td>
+                    <td><span class="text-light fw-medium">{{ svc.description or 'Standard hotel rate schedule' }}</span></td>
+                    <td>
+                        {% if svc.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-gold" data-bs-toggle="modal" data-bs-target="#editFeeModal{{ svc.id }}" title="Edit Fee">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <form action="{{ url_for('billing.delete_fee', fee_id=svc.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove fee: {{ svc.name }}?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Fee">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No fees or extra charges configured yet. Click "Add New Fee" to get started.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================================
+     EDIT FEE MODALS (Rendered cleanly outside the table)
+     ============================================================ -->
+{% for svc in services %}
+<div class="modal fade" id="editFeeModal{{ svc.id }}" tabindex="-1" aria-labelledby="editFeeModalLabel{{ svc.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25 py-2">
+                <h5 class="modal-title fw-bold" id="editFeeModalLabel{{ svc.id }}">
+                    <i class="fa-solid fa-pen-to-square text-gold me-1"></i> Edit Fee: {{ svc.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('billing.edit_fee', fee_id=svc.id) }}" method="POST">
+                <div class="modal-body p-3">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Fee / Service Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ svc.name }}" placeholder="Enter fee name (e.g. Airport Transfer)" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.8rem;">Category</label>
+                            <select name="category" class="form-select" required>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}" {% if svc.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.8rem;">Price / Amount ($)</label>
+                            <input type="number" step="0.01" min="0" name="price" class="form-control" value="{{ svc.price }}" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Billing Unit / Basis</label>
+                        <input type="text" name="unit_type" class="form-control" value="{{ svc.unit_type }}" placeholder="e.g. per service, per night, per trip">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Description</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Fee terms or details">{{ svc.description or '' }}</textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="feeActive{{ svc.id }}" {% if svc.is_active %}checked{% endif %}>
+                        <label class="form-check-label text-light small" for="feeActive{{ svc.id }}">
+                            Active for front desk & folio billing
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25 py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- ============================================================
+     ADD NEW FEE MODAL
+     ============================================================ -->
+<div class="modal fade" id="addFeeModal" tabindex="-1" aria-labelledby="addFeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-luxury text-light">
+            <div class="modal-header border-secondary border-opacity-25 py-2">
+                <h5 class="modal-title fw-bold" id="addFeeModalLabel">
+                    <i class="fa-solid fa-plus-circle text-gold me-1"></i> Add Fee or Extra Surcharge
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('billing.add_fee') }}" method="POST">
+                <div class="modal-body p-3">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Fee / Service Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="Enter fee name (e.g. Late Check-out Fee)" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.8rem;">Category</label>
+                            <select name="category" class="form-select" required>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.8rem;">Standard Price ($)</label>
+                            <input type="number" step="0.01" min="0" name="price" class="form-control" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Billing Unit / Basis</label>
+                        <input type="text" name="unit_type" class="form-control" value="per service" placeholder="e.g. per service, per night, per trip">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">Description / Details</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Fee terms, applicability, or notes"></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="newFeeActive" checked>
+                        <label class="form-check-label text-light small" for="newFeeActive">
+                            Active immediately for billing
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25 py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-bold">Create Fee Rate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

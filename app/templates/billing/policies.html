@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Stay Policies & Surcharge Fees | The Grand Horizon HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('billing.index') }}" class="text-gold">Billing &amp; Finance</a></li>
+                <li class="breadcrumb-item active text-light" aria-current="page">Stay Policies &amp; Fees</li>
+            </ol>
+        </nav>
+        <h2 class="h3 fw-bold mb-1">Hotel Stay Policies, <span class="text-gold">Early &amp; Late Surcharges</span></h2>
+        <p class="text-muted small mb-0">Dejinta saacadaha rasmiga ah ee check-in/out, lacagaha tooska ah ee la saarayo qofka yimaada subaxdii hore ama baxa galabtii dambe, iyo heerka deebaajiga.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('billing.deposits_hub') }}" class="btn btn-outline-warning btn-sm">
+            <i class="fa-solid fa-shield-halved me-1"></i> Security Deposits
+        </a>
+        <a href="{{ url_for('billing.index') }}" class="btn btn-gold btn-sm fw-bold">
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Guest Folios
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Policy Settings Form (Full Width) -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2 text-gold">
+                <i class="fa-solid fa-clock me-2"></i>Automated Surcharge &amp; Policy Rules
+            </h5>
+
+            <form action="{{ url_for('billing.policies_hub') }}" method="POST">
+                
+                <!-- Section 1: Standard Check-in and Check-out Times -->
+                <div class="p-3 bg-dark rounded border border-secondary border-opacity-25 mb-4">
+                    <h6 class="fw-bold text-light mb-3"><i class="fa-regular fa-clock text-gold me-2"></i>Standard Hotel Timings</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Standard Check-In Time (Saacadda Soo-galka)</label>
+                            <input type="text" name="standard_checkin_time" value="{{ settings.standard_checkin_time }}" class="form-control bg-black text-light border-secondary" placeholder="14:00 (2:00 PM)" required>
+                            <small class="text-muted" style="font-size: 0.72rem;">Guests arriving prior to this time are subject to early arrival rules.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Standard Check-Out Time (Saacadda Bixitaanka)</label>
+                            <input type="text" name="standard_checkout_time" value="{{ settings.standard_checkout_time }}" class="form-control bg-black text-light border-secondary" placeholder="11:00 (11:00 AM)" required>
+                            <small class="text-muted" style="font-size: 0.72rem;">Guests departing past this time require late checkout fee calculation.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Early Check-In Surcharges -->
+                <div class="p-3 bg-dark rounded border border-secondary border-opacity-25 mb-4">
+                    <h6 class="fw-bold text-light mb-3"><i class="fa-solid fa-sun text-warning me-2"></i>Early Check-In Surcharges</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Morning Early Arrival Fee ($) [Before 10:00 AM]</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary text-light border-secondary">$</span>
+                                <input type="number" step="0.01" name="early_checkin_surcharge_morning" value="{{ settings.early_checkin_surcharge_morning }}" class="form-control bg-black text-light border-secondary" required>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.72rem;">Suggested for early morning arrivals (Half-day room block charge).</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Mid-Day Early Arrival Fee ($) [10:00 AM - 1:00 PM]</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary text-light border-secondary">$</span>
+                                <input type="number" step="0.01" name="early_checkin_surcharge_afternoon" value="{{ settings.early_checkin_surcharge_afternoon }}" class="form-control bg-black text-light border-secondary" required>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.72rem;">Fee for intermediate early arrivals prior to 14:00.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Late Check-Out Surcharges -->
+                <div class="p-3 bg-dark rounded border border-secondary border-opacity-25 mb-4">
+                    <h6 class="fw-bold text-light mb-3"><i class="fa-solid fa-moon text-info me-2"></i>Late Check-Out Surcharges</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Afternoon Departure Fee ($) [12:00 PM - 3:00 PM]</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary text-light border-secondary">$</span>
+                                <input type="number" step="0.01" name="late_checkout_surcharge_afternoon" value="{{ settings.late_checkout_surcharge_afternoon }}" class="form-control bg-black text-light border-secondary" required>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.72rem;">Hourly extension surcharge past standard 11:00 AM.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Evening Late Departure Fee ($) [Past 3:00 PM]</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary text-light border-secondary">$</span>
+                                <input type="number" step="0.01" name="late_checkout_surcharge_evening" value="{{ settings.late_checkout_surcharge_evening }}" class="form-control bg-black text-light border-secondary" required>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.72rem;">Full half-day or extended evening surcharge.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Security Deposit Policy -->
+                <div class="p-3 bg-dark rounded border border-warning border-opacity-50 mb-4">
+                    <h6 class="fw-bold text-warning mb-3"><i class="fa-solid fa-shield-halved me-2"></i>Security Deposit Standard Policy</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Default Deposit Amount ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary text-light border-secondary">$</span>
+                                <input type="number" step="0.01" name="standard_security_deposit" value="{{ settings.standard_security_deposit }}" class="form-control bg-black text-light border-secondary" required>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.72rem;">Pre-filled deposit amount during front desk check-in.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Deposit Terms &amp; Explanation</label>
+                            <input type="text" name="deposit_policy_notes" value="{{ settings.deposit_policy_notes }}" class="form-control bg-black text-light border-secondary" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-gold px-4 py-2 fw-bold shadow">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Save Stay Policies &amp; Surcharge Rates
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Information Card (Full Width Below) -->
+    <div class="col-12">
+        <div class="card-luxury p-4">
+            <h5 class="fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2 text-gold">
+                <i class="fa-solid fa-circle-question me-2"></i>Sida Nidaamku U Xisaabiyo
+            </h5>
+
+            <div class="mb-3 small text-muted">
+                <strong class="text-light d-block mb-1">1. Check-in-ka Tooska ah:</strong>
+                Marka shaqaalaha reception-ku furtaan foomka check-in-ka, nidaamku wuxuu eegayaa saacadda kombuyuutarka. Haddii ay ka horrayso <strong>10:00 AM</strong>, wuxuu toos ugu soo jeedinayaa <strong>${{ settings.early_checkin_surcharge_morning }}</strong>.
+            </div>
+
+            <div class="mb-3 small text-muted">
+                <strong class="text-light d-block mb-1">2. Check-out-ka Tooska ah:</strong>
+                Xilliga bixitaanka, haddii ay saacaddu dhaaftay <strong>11:00 AM</strong>, shaashaddu waxay toos u soo saaraysaa lacagta dheeraadka ah ee bixitaanka dambe iyadoo la raacayo siyaasaddan.
+            </div>
+
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 small text-light">
+                <i class="fa-solid fa-lock text-warning me-1"></i>
+                Dhammaan khidmadahani waxay si toos ah ugu darsamayaan Folio-ga martida waxayna ka dhex muuqanayaan warbixinta <strong>Night Audit</strong>.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -512,6 +512,53 @@
                 </div>
             </div>
         </div>
+
+        <!-- 7. VIP & Security Blacklist CRM Filter -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-warning bg-opacity-15 text-warning-emphasis fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-solid fa-crown me-1"></i>Loyalty &amp; Security</span>
+                        <div class="d-flex gap-1">
+                            <span class="badge bg-gold text-dark fw-bold">{{ vip_guests_count }} VIPs</span>
+                            <span class="badge bg-danger text-white">{{ blacklisted_guests_count }} Blocked</span>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">VIP &amp; Security Blacklist CRM Filter</h6>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">Kala soocida martida sharafta leh (Platinum/Gold VIPs) iyo kuwa laga mamnuucay hotelka (Security Blacklist) si toos ah loogu aqoonsado reception-ka.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('guests.blacklist_hub') }}" class="btn btn-sm btn-outline-warning text-dark fw-bold w-100">
+                        <i class="fa-solid fa-user-shield me-1"></i> VIP &amp; Blacklist Console
+                    </a>
+                    <a href="{{ url_for('guests.index') }}" class="btn btn-sm btn-outline-secondary" title="View Guest CRM">
+                        <i class="fa-solid fa-users"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Stay Policies & Automated Early/Late Fees -->
+        <div class="col-xl-4 col-md-6">
+            <div class="p-3 rounded bg-white border shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold text-uppercase" style="font-size: 0.7rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i>Automated Policy</span>
+                        <span class="badge bg-info text-dark fw-bold">14:00 In &bull; 11:00 Out</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Early Check-In / Late Check-Out Policy</h6>
+                    <p class="text-muted small mb-3" style="font-size: 0.75rem;">Xisaabinta tooska ah ee khidmadaha dheeraadka ah ($15 - $40) marka martidu timaado saacadda ka hor ama ay baxdo 11:00 AM kadib.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('billing.policies_hub') }}" class="btn btn-sm btn-outline-primary fw-bold w-100">
+                        <i class="fa-solid fa-sliders me-1"></i> Policy &amp; Surcharge Rules
+                    </a>
+                    <a href="{{ url_for('billing.index') }}" class="btn btn-sm btn-outline-secondary" title="View Invoices">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

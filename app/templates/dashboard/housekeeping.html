@@ -20,14 +20,20 @@
                         <p class="text-white-50 mb-0 small">Welcome back, <strong>{{ current_user.full_name or current_user.username }}</strong>. Real-time cleaning status, room turnover, and maintenance inspection.</p>
                     </div>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap">
                     <a href="{{ url_for('housekeeping.index') }}" class="btn btn-info text-dark btn-sm fw-bold px-3 py-2">
                         <i class="fa-solid fa-list-check me-1"></i> Housekeeping Roster
+                    </a>
+                    <a href="{{ url_for('housekeeping.laundry_hub') }}" class="btn btn-outline-info btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-shirt me-1"></i> Laundry &amp; Linen
+                    </a>
+                    <a href="{{ url_for('housekeeping.minibar_hub') }}" class="btn btn-outline-warning btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-wine-bottle me-1"></i> Minibar Restock
                     </a>
                     <a href="{{ url_for('rooms.status_board') }}" class="btn btn-outline-light btn-sm fw-bold px-3 py-2">
                         <i class="fa-solid fa-border-all me-1"></i> Floor Status Matrix
                     </a>
-                    <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-warning btn-sm fw-bold px-3 py-2">
+                    <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-danger btn-sm fw-bold px-3 py-2">
                         <i class="fa-solid fa-screwdriver-wrench me-1"></i> Report Issue
                     </a>
                 </div>

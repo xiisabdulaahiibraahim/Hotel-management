@@ -106,6 +106,7 @@
                     <li class="nav-item"><a class="nav-link active text-gold fw-semibold" href="#hero">Home</a></li>
                     <li class="nav-item"><a class="nav-link text-light" href="#suites">Suites</a></li>
                     <li class="nav-item"><a class="nav-link text-light" href="#amenities">Amenities</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="#diningTableSection"><i class="fa-solid fa-chair me-1" style="color:#f59e0b;"></i>Dining Tables</a></li>
                     <li class="nav-item"><a class="nav-link text-light" href="#reviews">Reviews</a></li>
                     <li class="nav-item"><a class="nav-link text-light" href="{{ url_for('guest_portal.my_bookings') }}">My Bookings</a></li>
                     <li class="nav-item"><a class="nav-link text-light" href="{{ url_for('guest_portal.delivery_page') }}"><i class="fa-solid fa-truck-fast me-1" style="color:#f59e0b;"></i>Delivery</a></li>
@@ -355,7 +356,10 @@
             <div class="text-center mb-4">
                 <span class="text-gold text-uppercase fw-bold" style="letter-spacing: 0.12em; font-size: 0.72rem;">Guest Impressions</span>
                 <h3 class="fw-bold serif-gold mt-1" style="font-size: 1.8rem;">What Our Guests Say</h3>
-                <div class="mx-auto bg-gold" style="width: 45px; height: 2px; border-radius: 2px;"></div>
+                <div class="mx-auto bg-gold mb-2" style="width: 45px; height: 2px; border-radius: 2px;"></div>
+                <button type="button" class="btn btn-outline-gold btn-sm px-3 py-1 fw-semibold" data-bs-toggle="modal" data-bs-target="#submitReviewModal">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Share Your Experience / Qor Ra'yi
+                </button>
             </div>
 
             <div class="row g-3">
@@ -381,6 +385,81 @@
                     </div>
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         OCEANFRONT DINING & TABLE RESERVATION SECTION
+         ==================================================== -->
+    <section class="py-5" id="diningTableSection" style="background: linear-gradient(135deg, #0d1527 0%, #172033 100%); border-top: 1px solid rgba(217,119,6,0.3); border-bottom: 1px solid rgba(217,119,6,0.3);">
+        <div class="container">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <span class="text-gold text-uppercase fw-bold" style="letter-spacing: 0.14em; font-size: 0.72rem;">
+                        <i class="fa-solid fa-utensils me-1"></i> Fine Oceanfront Culinary Experience
+                    </span>
+                    <h3 class="fw-bold serif-gold mt-2 mb-3" style="font-size: 2rem; line-height: 1.25;">
+                        Reserve an Oceanfront Dining Table or Private Beach Cabana
+                    </h3>
+                    <p class="text-light mb-4" style="font-size: 0.95rem; line-height: 1.7; opacity: 0.9;">
+                        Ku raaxayso cuntooyinka badda ee ugu macaan Lido Coastline, cabitaannada qalaad, iyo muuqaalka dabiiciga ah ee Badweynta Hindiya. Qabso miis ama teendho khaas ah (VIP Beach Cabana) si aad u hesho adeeg heer caalami ah adigoon saf gelin.
+                    </p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded bg-dark border border-secondary border-opacity-50 h-100">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fa-solid fa-water text-gold fs-5"></i>
+                                    <strong class="text-light" style="font-size: 0.88rem;">Lido Oceanfront Terrace</strong>
+                                </div>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Muuqaalka tooska ah ee badda & qorrax-u-dhaca cajiibka ah.</small>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded bg-dark border border-warning border-opacity-50 h-100">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fa-solid fa-umbrella-beach text-warning fs-5"></i>
+                                    <strong class="text-warning" style="font-size: 0.88rem;">VIP Private Beach Cabanas</strong>
+                                </div>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Aag khaas ah oo xasiloon qoysaska & kulamada gaarka ah.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-gold fw-bold px-4 py-2" style="font-size: 0.88rem;" data-bs-toggle="modal" data-bs-target="#reserveTableModal">
+                            <i class="fa-solid fa-calendar-check me-2"></i> Qabso Miis Hadda (Reserve Table)
+                        </button>
+                        <button type="button" class="btn btn-outline-light px-3.5 py-2" style="font-size: 0.88rem;" data-bs-toggle="modal" data-bs-target="#conciergeInquiryModal">
+                            <i class="fa-solid fa-champagne-glasses me-2 text-gold"></i> Private Events &amp; Inquiries
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card-luxury p-4" style="border: 1px solid rgba(217,119,6,0.35); background: rgba(15, 23, 42, 0.85);">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                            <h6 class="fw-bold text-gold mb-0"><i class="fa-solid fa-clock me-1.5"></i> Daily Dining Schedule</h6>
+                            <span class="badge bg-success">Open Daily</span>
+                        </div>
+                        <ul class="list-unstyled mb-0 small text-light" style="font-size: 0.82rem; line-height: 2;">
+                            <li class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 py-1">
+                                <span><i class="fa-solid fa-mug-saucer text-gold me-2"></i>Royal Breakfast Hamper</span>
+                                <span class="fw-semibold text-gold">06:30 — 10:30 AM</span>
+                            </li>
+                            <li class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 py-1">
+                                <span><i class="fa-solid fa-utensils text-gold me-2"></i>Ocean Catch Gourmet Lunch</span>
+                                <span class="fw-semibold text-gold">12:00 — 15:30 PM</span>
+                            </li>
+                            <li class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 py-1">
+                                <span><i class="fa-solid fa-glass-water text-gold me-2"></i>Sunset High Tea &amp; Mocktails</span>
+                                <span class="fw-semibold text-gold">16:30 — 18:30 PM</span>
+                            </li>
+                            <li class="d-flex justify-content-between py-1">
+                                <span><i class="fa-solid fa-moon text-gold me-2"></i>Lido Candlelight Dinner</span>
+                                <span class="fw-semibold text-gold">19:00 — 23:30 PM</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -488,7 +567,7 @@
                     <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Complete Your Reservation</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{{ url_for('guest_portal.book_online') }}" method="POST">
+                <form action="{{ url_for('guest_portal.book_online') }}" method="POST" enctype="multipart/form-data">
                     <div class="modal-body p-3">
                         <div class="row g-2">
                             <div class="col-md-6">
@@ -565,6 +644,184 @@
                     <div class="modal-footer border-secondary border-opacity-25 py-2">
                         <button type="button" class="btn btn-secondary btn-sm py-1" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-gold btn-sm px-3 py-1 fw-bold">Confirm Booking</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 1: Online Table & Beach Cabana Reservation -->
+    <div class="modal fade" id="reserveTableModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content card-luxury text-light">
+                <div class="modal-header border-secondary border-opacity-25 py-2">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">
+                        <i class="fa-solid fa-chair text-gold me-2"></i>Reserve Oceanfront Table or Beach Cabana
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('guest_portal.book_table_online') }}" method="POST">
+                    <div class="modal-body p-3">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Full Name (Magacaaga)</label>
+                                <input type="text" name="guest_name" class="form-control form-control-sm" placeholder="e.g. Ahmed Ali Warsame" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Mobile Phone (+252...)</label>
+                                <input type="text" name="guest_phone" class="form-control form-control-sm" placeholder="+252 61 700 0000" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Email Address (Ikhtiyaari)</label>
+                                <input type="email" name="guest_email" class="form-control form-control-sm" placeholder="e.g. ahmed@example.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Seating Preference (Goobta Aad Dooranayso)</label>
+                                <select name="table_area" class="form-select form-select-sm" required>
+                                    <option value="Lido Oceanfront Terrace (Muuqaalka Badda)">Lido Oceanfront Terrace (Muuqaalka Badda)</option>
+                                    <option value="VIP Private Beach Cabana">VIP Private Beach Cabana (Teendho Khaas ah)</option>
+                                    <option value="Sunset Lounge & Mocktail Bar">Sunset Lounge & Mocktail Bar</option>
+                                    <option value="Executive Indoor Grand Dining">Executive Indoor Grand Dining (Gudaha)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" style="font-size: 0.78rem;">Reservation Date (Taariikhda)</label>
+                                <input type="date" name="reservation_date" value="{{ checkin_default }}" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" style="font-size: 0.78rem;">Dining Time Slot (Saacadda)</label>
+                                <select name="reservation_time" class="form-select form-select-sm" required>
+                                    <option value="08:00 AM">08:00 AM (Breakfast)</option>
+                                    <option value="12:30 PM">12:30 PM (Lunch)</option>
+                                    <option value="13:30 PM">01:30 PM (Lunch)</option>
+                                    <option value="17:00 PM">05:00 PM (Sunset Tea)</option>
+                                    <option value="19:30 PM" selected>07:30 PM (Dinner)</option>
+                                    <option value="20:30 PM">08:30 PM (Dinner)</option>
+                                    <option value="21:30 PM">09:30 PM (Late Dinner)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" style="font-size: 0.78rem;">Number of Diners (Dadka)</label>
+                                <input type="number" name="guests_count" min="1" max="25" value="2" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 0.78rem;">Special Requests / Dining Notes (Faahfaahin Gaar ah)</label>
+                                <textarea name="special_requests" class="form-control form-control-sm" rows="2" placeholder="Anniversary setup, Birthday cake, Fresh lobster pre-order, High chair, etc."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary border-opacity-25 py-2">
+                        <button type="button" class="btn btn-secondary btn-sm py-1" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-gold btn-sm px-4 py-1 fw-bold">
+                            <i class="fa-solid fa-check-circle me-1"></i> Xaqiiji Ballanta Miiska (Confirm)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Submit Guest Review -->
+    <div class="modal fade" id="submitReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-luxury text-light">
+                <div class="modal-header border-secondary border-opacity-25 py-2">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">
+                        <i class="fa-solid fa-star text-gold me-2"></i>Share Your Resort Experience
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('guest_portal.submit_review') }}" method="POST">
+                    <div class="modal-body p-3">
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.78rem;">Your Rating (Qiimayntaada)</label>
+                            <select name="rating" class="form-select form-select-sm" required>
+                                <option value="5" selected>★★★★★ 5 Stars - Exceptional Luxury</option>
+                                <option value="4">★★★★☆ 4 Stars - Very Good</option>
+                                <option value="3">★★★☆☆ 3 Stars - Average</option>
+                                <option value="2">★★☆☆☆ 2 Stars - Below Expectations</option>
+                                <option value="1">★☆☆☆☆ 1 Star - Poor</option>
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Your Name</label>
+                                <input type="text" name="guest_name" class="form-control form-control-sm" placeholder="e.g. Maryan Nuur" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Email Address</label>
+                                <input type="email" name="email" class="form-control form-control-sm" placeholder="e.g. maryan@example.com">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.78rem;">Review Title</label>
+                            <input type="text" name="title" class="form-control form-control-sm" placeholder="e.g. Breathtaking Ocean Views & World-Class Service!">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.78rem;">Your Comments &amp; Impressions</label>
+                            <textarea name="comment" class="form-control form-control-sm" rows="3" placeholder="Share your experience regarding our suites, dining, and staff hospitality..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary border-opacity-25 py-2">
+                        <button type="button" class="btn btn-secondary btn-sm py-1" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-gold btn-sm px-3 py-1 fw-bold">Submit Review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Concierge, VIP Transfer & Event Inquiry -->
+    <div class="modal fade" id="conciergeInquiryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-luxury text-light">
+                <div class="modal-header border-secondary border-opacity-25 py-2">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">
+                        <i class="fa-solid fa-bell-concierge text-gold me-2"></i>VIP Concierge &amp; Event Inquiries
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('guest_portal.submit_contact_inquiry') }}" method="POST">
+                    <div class="modal-body p-3">
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Full Name</label>
+                                <input type="text" name="full_name" class="form-control form-control-sm" placeholder="e.g. Guuleed Xasan" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Mobile Phone</label>
+                                <input type="text" name="phone" class="form-control form-control-sm" placeholder="+252 61..." required>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.78rem;">Email Address</label>
+                            <input type="email" name="email" class="form-control form-control-sm" placeholder="e.g. guleed@example.com">
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Inquiry Service</label>
+                                <select name="inquiry_type" class="form-select form-select-sm">
+                                    <option value="Airport VIP Pickup / Transfer">Airport VIP Pickup / Transfer</option>
+                                    <option value="Beach Wedding & Reception">Beach Wedding & Reception</option>
+                                    <option value="Corporate Conference / Hall">Corporate Conference / Hall</option>
+                                    <option value="Private Beach Cabana Party">Private Beach Cabana Party</option>
+                                    <option value="Yacht & Watersports Charter">Yacht & Watersports Charter</option>
+                                    <option value="Other Concierge Service">Other Concierge Service</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" style="font-size: 0.78rem;">Estimated Date</label>
+                                <input type="date" name="event_date" class="form-control form-control-sm">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.78rem;">Message &amp; Details</label>
+                            <textarea name="message" class="form-control form-control-sm" rows="3" placeholder="Tell us more about your guests count, special requirements, or timing..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary border-opacity-25 py-2">
+                        <button type="button" class="btn btn-secondary btn-sm py-1" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-gold btn-sm px-3 py-1 fw-bold">Send Inquiry</button>
                     </div>
                 </form>
             </div>

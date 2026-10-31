@@ -152,7 +152,9 @@ def index():
             kitchen_queue_count=kitchen_queue_count,
             in_transit_count=in_transit_count,
             delivered_count=delivered_count,
-            restaurant_today_sales=restaurant_today_sales
+            restaurant_today_sales=restaurant_today_sales,
+            today_table_reservations=today_table_reservations,
+            today_reservations_count=today_reservations_count
         )
 
     # 4. ACCOUNTANT DASHBOARD

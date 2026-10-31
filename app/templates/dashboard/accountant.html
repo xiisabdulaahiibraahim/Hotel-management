@@ -20,9 +20,15 @@
                         <p class="text-white-50 mb-0 small">Welcome back, <strong>{{ current_user.full_name or current_user.username }}</strong>. Real-time folios, revenue recognition, cash flows, and expense auditing.</p>
                     </div>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap">
                     <a href="{{ url_for('billing.index') }}" class="btn btn-gold btn-sm fw-bold px-3 py-2">
                         <i class="fa-solid fa-file-invoice-dollar me-1"></i> Billing &amp; Folios
+                    </a>
+                    <a href="{{ url_for('billing.night_audit') }}" class="btn btn-outline-warning text-dark bg-warning bg-opacity-25 btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-moon me-1"></i> Night Audit
+                    </a>
+                    <a href="{{ url_for('billing.deposits_hub') }}" class="btn btn-outline-light btn-sm fw-bold px-3 py-2">
+                        <i class="fa-solid fa-shield-halved me-1"></i> Security Deposits
                     </a>
                     <a href="{{ url_for('expenses.index') }}" class="btn btn-outline-light btn-sm fw-bold px-3 py-2">
                         <i class="fa-solid fa-wallet me-1"></i> Expenses &amp; Cash

@@ -198,5 +198,77 @@
             </table>
         </div>
     </div>
+
+    <!-- Today's Dining Table & Cabana Reservations -->
+    <div class="card bg-white border border-secondary border-opacity-25 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom border-secondary border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-chair text-gold me-2"></i>Ballamaha Miisaska &amp; Teendhooyinka Xeebta (Today's Dining Table &amp; Cabana Bookings)
+                </h6>
+                <span class="badge bg-gold text-dark fw-bold">{{ today_reservations_count }} Ballamood Maanta</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('restaurant.table_reservations') }}" class="btn btn-sm btn-outline-info">
+                    <i class="fa-solid fa-calendar-plus me-1"></i> Maamul Miisaska
+                </a>
+                <a href="{{ url_for('restaurant.recipes') }}" class="btn btn-sm btn-outline-danger">
+                    <i class="fa-solid fa-mortar-pestle me-1"></i> Raw Stock Recipes
+                </a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small text-uppercase">
+                        <th>Ref Code</th>
+                        <th>Guest Name</th>
+                        <th>Phone</th>
+                        <th>Table # / Zone</th>
+                        <th>Waqtiga</th>
+                        <th>Tirada Martida</th>
+                        <th>Dookha Gaarka ah</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in today_table_reservations %}
+                    <tr>
+                        <td><span class="badge bg-dark font-monospace text-gold px-2 py-1">{{ res.reservation_code }}</span></td>
+                        <td class="fw-bold text-dark">{{ res.guest_name }}</td>
+                        <td class="small text-muted"><i class="fa-solid fa-phone me-1"></i>{{ res.guest_phone }}</td>
+                        <td><span class="badge bg-info bg-opacity-15 text-info-emphasis border border-info fw-bold">Table {{ res.table_number }}</span></td>
+                        <td class="fw-semibold text-primary"><i class="fa-regular fa-clock me-1"></i>{{ res.reservation_time.strftime('%H:%M') if res.reservation_time else 'Evening' }}</td>
+                        <td><span class="badge bg-secondary">{{ res.guests_count }} Qof</span></td>
+                        <td class="small text-muted">{{ res.special_requests or '-' }}</td>
+                        <td>
+                            <span class="badge {% if res.status == 'Confirmed' %}bg-success{% elif res.status == 'Seated' %}bg-primary{% elif res.status == 'Completed' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                                {{ res.status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            {% if res.guest_phone %}
+                            <a href="https://api.whatsapp.com/send?phone={{ res.guest_phone }}&text=Asc%20{{ res.guest_name }},%20ballantaada%20miiska%20Table%20{{ res.table_number }}%20ee%20The%20Grand%20Horizon%20Lido%20Resort%20waa%20diyaar!" target="_blank" class="btn btn-sm btn-outline-success" title="WhatsApp Macmiilka">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('restaurant.table_reservations') }}" class="btn btn-sm btn-outline-gold" title="Faahfaahin">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fa-solid fa-chair text-secondary fa-2x mb-2 d-block"></i>
+                            Ma jiraan ballamo miisas ah oo maanta la qabtay. Miisaska oo dhan waa bannaan yihiin.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
